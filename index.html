@@ -1,0 +1,944 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aufgaben</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #1a1a18;
+    --paper: #f5f0e8;
+    --cream: #ede8dc;
+    --gold: #c8a84b;
+    --gold-light: #e8d08a;
+    --rust: #b85c38;
+    --sage: #6b8f71;
+    --muted: #8a8578;
+    --border: #d4cebe;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Mono', monospace;
+    background: var(--paper);
+    color: var(--ink);
+    min-height: 100vh;
+    background-image: repeating-linear-gradient(0deg, transparent, transparent 27px, rgba(200,168,75,0.08) 27px, rgba(200,168,75,0.08) 28px);
+  }
+
+  /* ── LOGIN SCREEN ───────────────────────────────── */
+  #login-screen {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+  }
+
+  .login-card {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    box-shadow: 8px 8px 0 var(--border);
+    width: 100%;
+    max-width: 400px;
+    overflow: hidden;
+  }
+
+  .login-top {
+    background: var(--ink);
+    padding: 2rem 2rem 1.5rem;
+    text-align: center;
+  }
+
+  .login-top h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--paper);
+    line-height: 1.1;
+  }
+  .login-top h1 span { color: var(--gold); }
+
+  .login-top p {
+    font-size: 0.7rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-top: 0.4rem;
+  }
+
+  .login-tabs {
+    display: flex;
+    border-bottom: 1px solid var(--border);
+    background: var(--cream);
+  }
+
+  .login-tab {
+    flex: 1;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 0.75rem;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    color: var(--muted);
+    border-bottom: 2px solid transparent;
+    transition: all 0.15s;
+  }
+  .login-tab.active { color: var(--ink); border-bottom-color: var(--gold); background: white; }
+
+  .login-form-body { padding: 1.5rem 2rem 2rem; }
+
+  .login-field { margin-bottom: 1rem; }
+  .login-field label {
+    display: block;
+    font-size: 0.62rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 0.35rem;
+  }
+  .login-field input {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.85rem;
+    width: 100%;
+    background: var(--paper);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    padding: 0.65rem 0.9rem;
+    color: var(--ink);
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .login-field input:focus { border-color: var(--gold); }
+
+  .login-error {
+    font-size: 0.75rem;
+    color: var(--rust);
+    background: rgba(184,92,56,0.08);
+    border: 1px solid rgba(184,92,56,0.2);
+    border-radius: 2px;
+    padding: 0.5rem 0.8rem;
+    margin-bottom: 1rem;
+    display: none;
+  }
+  .login-error.show { display: block; }
+
+  .btn-login {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.75rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    background: var(--ink);
+    color: var(--paper);
+    border: none;
+    border-radius: 2px;
+    padding: 0.75rem;
+    width: 100%;
+    cursor: pointer;
+    transition: all 0.15s;
+    margin-top: 0.25rem;
+  }
+  .btn-login:hover { background: var(--gold); color: var(--ink); }
+
+  .login-hint {
+    font-size: 0.68rem;
+    color: var(--muted);
+    text-align: center;
+    margin-top: 1rem;
+    line-height: 1.5;
+  }
+
+  /* ── MAIN APP ───────────────────────────────────── */
+  #app-screen { display: none; padding: 2rem 1rem 4rem; }
+  .container { max-width: 760px; margin: 0 auto; }
+
+  header {
+    margin-bottom: 3rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 2px solid var(--gold);
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+  header h1 { font-family: 'Playfair Display', serif; font-size: clamp(2rem,5vw,3.2rem); font-weight: 700; letter-spacing: -0.02em; line-height: 1; }
+  header h1 span { color: var(--gold); }
+
+  .header-right { display: flex; flex-direction: column; align-items: flex-end; gap: 0.5rem; }
+  .header-meta { font-size: 0.7rem; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; text-align: right; }
+
+  .user-bar { display: flex; align-items: center; gap: 0.6rem; }
+  .user-badge { font-size: 0.65rem; letter-spacing: 0.08em; color: var(--muted); background: var(--cream); border: 1px solid var(--border); border-radius: 99px; padding: 0.25rem 0.7rem; }
+  .user-badge strong { color: var(--ink); }
+  .btn-logout { font-family: 'DM Mono', monospace; font-size: 0.65rem; letter-spacing: 0.08em; text-transform: uppercase; background: transparent; color: var(--muted); border: 1px solid var(--border); border-radius: 2px; padding: 0.25rem 0.6rem; cursor: pointer; transition: all 0.15s; }
+  .btn-logout:hover { border-color: var(--rust); color: var(--rust); }
+
+  .add-form { background: white; border: 1px solid var(--border); border-radius: 2px; padding: 1.5rem; margin-bottom: 2rem; box-shadow: 4px 4px 0 var(--border); }
+  .form-title { font-size: 0.65rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); margin-bottom: 1rem; }
+  .form-row { display: flex; gap: 0.75rem; margin-bottom: 0.75rem; flex-wrap: wrap; }
+  .form-row input, .form-row select { font-family: 'DM Mono', monospace; font-size: 0.85rem; background: var(--paper); border: 1px solid var(--border); border-radius: 2px; padding: 0.6rem 0.8rem; color: var(--ink); outline: none; transition: border-color 0.2s; }
+  .form-row input:focus, .form-row select:focus { border-color: var(--gold); }
+  .form-row input[type="text"] { flex: 1; min-width: 200px; }
+  .form-row input[type="date"] { min-width: 160px; }
+  .form-row select { min-width: 140px; }
+  .form-group-new { display: flex; gap: 0.5rem; align-items: center; margin-bottom: 0.75rem; }
+  .form-group-new input { font-family: 'DM Mono', monospace; font-size: 0.85rem; background: var(--paper); border: 1px solid var(--border); border-radius: 2px; padding: 0.5rem 0.8rem; color: var(--ink); outline: none; flex: 1; }
+
+  .btn { font-family: 'DM Mono', monospace; font-size: 0.75rem; letter-spacing: 0.08em; text-transform: uppercase; border: none; cursor: pointer; border-radius: 2px; transition: all 0.15s; white-space: nowrap; }
+  .btn-primary { background: var(--ink); color: var(--paper); padding: 0.65rem 1.2rem; }
+  .btn-primary:hover { background: var(--gold); color: var(--ink); }
+  .btn-ghost { background: transparent; color: var(--muted); padding: 0.5rem 0.8rem; border: 1px solid var(--border); font-size: 0.7rem; }
+  .btn-ghost:hover { border-color: var(--gold); color: var(--gold); }
+  .btn-danger { background: transparent; color: var(--rust); border: none; padding: 0.3rem 0.4rem; font-size: 0.7rem; opacity: 0.6; cursor: pointer; }
+  .btn-danger:hover { opacity: 1; }
+
+  .stats { display: flex; gap: 1.5rem; margin-bottom: 2rem; flex-wrap: wrap; }
+  .stat { display: flex; flex-direction: column; gap: 0.2rem; }
+  .stat-num { font-family: 'Playfair Display', serif; font-size: 1.8rem; font-weight: 700; line-height: 1; }
+  .stat-label { font-size: 0.6rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+  .stat-num.gold { color: var(--gold); }
+  .stat-num.rust { color: var(--rust); }
+  .stat-num.sage { color: var(--sage); }
+
+  .groups-container { display: flex; flex-direction: column; gap: 1.5rem; }
+  .group { border: 1px solid var(--border); border-radius: 2px; background: white; overflow: hidden; box-shadow: 3px 3px 0 var(--cream); animation: slideIn 0.25s ease; }
+  @keyframes slideIn { from{opacity:0;transform:translateY(-8px)} to{opacity:1;transform:translateY(0)} }
+  @keyframes fadeIn  { from{opacity:0} to{opacity:1} }
+  .group-header { display: flex; align-items: center; gap: 0.75rem; padding: 0.9rem 1.2rem; background: var(--cream); border-bottom: 1px solid var(--border); cursor: pointer; user-select: none; }
+  .group-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+  .group-name { font-family: 'Playfair Display', serif; font-size: 1rem; font-weight: 700; flex: 1; }
+  .group-count { font-size: 0.65rem; color: var(--muted); letter-spacing: 0.1em; padding: 0.2rem 0.5rem; background: white; border-radius: 99px; border: 1px solid var(--border); }
+  .group-toggle { font-size: 0.7rem; color: var(--muted); transition: transform 0.2s; }
+  .group-toggle.collapsed { transform: rotate(-90deg); }
+  .group-body { padding: 0; }
+  .group-body.hidden { display: none; }
+
+  .task { display: flex; align-items: flex-start; gap: 0.8rem; padding: 0.85rem 1.2rem; border-bottom: 1px solid var(--cream); transition: background 0.15s; animation: fadeIn 0.2s ease; }
+  .task:last-child { border-bottom: none; }
+  .task:hover { background: var(--paper); }
+  .task.done { opacity: 0.5; }
+  .task-check { width: 18px; height: 18px; border: 1.5px solid var(--border); border-radius: 2px; flex-shrink: 0; margin-top: 2px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.15s; background: white; }
+  .task-check:hover { border-color: var(--gold); }
+  .task-check.checked { background: var(--sage); border-color: var(--sage); }
+  .task-check.checked::after { content: '✓'; font-size: 11px; color: white; font-weight: bold; }
+  .task-body { flex: 1; min-width: 0; }
+  .task-text { font-size: 0.875rem; line-height: 1.5; word-break: break-word; }
+  .task.done .task-text { text-decoration: line-through; color: var(--muted); }
+  .task-meta { display: flex; align-items: center; gap: 0.5rem; margin-top: 0.3rem; flex-wrap: wrap; }
+  .deadline-badge { font-size: 0.65rem; letter-spacing: 0.05em; padding: 0.15rem 0.5rem; border-radius: 99px; border: 1px solid; }
+  .deadline-badge.ok      { color: var(--sage); border-color: var(--sage); background: rgba(107,143,113,0.08); }
+  .deadline-badge.soon    { color: var(--gold); border-color: var(--gold); background: rgba(200,168,75,0.1); }
+  .deadline-badge.overdue { color: var(--rust); border-color: var(--rust); background: rgba(184,92,56,0.1); }
+  .deadline-badge.alert   { color: var(--rust); border-color: var(--rust); background: rgba(184,92,56,0.15); animation: pulse 1.5s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
+  .task-actions { display: flex; gap: 0.2rem; flex-shrink: 0; opacity: 0; transition: opacity 0.15s; }
+  .task:hover .task-actions { opacity: 1; }
+  .btn-edit { background: transparent; color: var(--gold); border: none; padding: 0.3rem 0.45rem; font-size: 0.85rem; opacity: 0.7; cursor: pointer; transition: opacity 0.15s; font-family: inherit; }
+  .btn-edit:hover { opacity: 1; }
+
+  .ungrouped { border: 1px dashed var(--border); border-radius: 2px; background: white; overflow: hidden; }
+  .ungrouped-header { padding: 0.7rem 1.2rem; font-size: 0.65rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); background: var(--paper); border-bottom: 1px dashed var(--border); }
+
+  .notification-bar { position: fixed; bottom: 1.5rem; right: 1.5rem; max-width: 320px; background: var(--ink); color: var(--paper); border-radius: 3px; padding: 1rem 1.2rem; font-size: 0.78rem; line-height: 1.5; box-shadow: 0 8px 30px rgba(0,0,0,0.3); z-index: 1000; display: none; animation: slideUp 0.3s ease; border-left: 3px solid var(--gold); }
+  @keyframes slideUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
+  .notification-bar.show { display: block; }
+  .notification-title { font-family: 'Playfair Display', serif; font-size: 0.9rem; font-weight: 700; margin-bottom: 0.4rem; color: var(--gold-light); }
+  .notification-close { float: right; background: none; border: none; color: var(--muted); cursor: pointer; font-size: 1rem; line-height: 1; margin-left: 0.5rem; }
+  .notification-close:hover { color: white; }
+
+  .empty { text-align: center; padding: 3rem 1rem; color: var(--muted); font-size: 0.8rem; letter-spacing: 0.08em; }
+  .empty-icon { font-size: 2.5rem; margin-bottom: 0.75rem; opacity: 0.4; }
+
+  .color-picker { display: flex; gap: 0.4rem; align-items: center; }
+  .swatch { width: 16px; height: 16px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; transition: transform 0.15s; }
+  .swatch:hover, .swatch.selected { transform: scale(1.3); border-color: var(--ink); }
+
+  .filter-bar { display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
+  .toggle-label { font-size: 0.7rem; letter-spacing: 0.08em; color: var(--muted); display: flex; align-items: center; gap: 0.4rem; cursor: pointer; user-select: none; }
+  .toggle-label input { cursor: pointer; accent-color: var(--gold); }
+  .manage-groups-btn { display: inline-flex; align-items: center; gap: 0.4rem; font-family: 'DM Mono', monospace; font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; background: transparent; color: var(--muted); border: 1px solid var(--border); border-radius: 2px; padding: 0.45rem 0.9rem; cursor: pointer; transition: all 0.15s; }
+  .manage-groups-btn:hover { border-color: var(--gold); color: var(--gold); }
+
+  .modal-overlay { position: fixed; inset: 0; background: rgba(26,26,24,0.55); backdrop-filter: blur(2px); z-index: 500; display: flex; align-items: center; justify-content: center; padding: 1rem; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
+  .modal-overlay.open { opacity: 1; pointer-events: all; }
+  .modal { background: var(--paper); border: 1px solid var(--border); border-radius: 3px; box-shadow: 8px 8px 0 var(--border); width: 100%; max-width: 520px; max-height: 80vh; display: flex; flex-direction: column; transform: translateY(12px); transition: transform 0.2s; }
+  .modal-overlay.open .modal { transform: translateY(0); }
+  .modal-header { display: flex; align-items: center; justify-content: space-between; padding: 1.2rem 1.5rem 1rem; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+  .modal-header h2 { font-family: 'Playfair Display', serif; font-size: 1.3rem; font-weight: 700; }
+  .modal-close { background: none; border: none; font-size: 1.1rem; color: var(--muted); cursor: pointer; padding: 0.2rem; line-height: 1; transition: color 0.15s; }
+  .modal-close:hover { color: var(--ink); }
+  .modal-body { overflow-y: auto; padding: 1rem 1.5rem; flex: 1; }
+  .modal-empty { text-align: center; padding: 2.5rem 1rem; color: var(--muted); font-size: 0.8rem; letter-spacing: 0.08em; }
+
+  .group-row { display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 0; border-bottom: 1px solid var(--cream); animation: fadeIn 0.2s ease; }
+  .group-row:last-child { border-bottom: none; }
+  .group-row-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; cursor: pointer; border: 2px solid transparent; transition: transform 0.15s; }
+  .group-row-dot:hover { transform: scale(1.3); border-color: var(--ink); }
+  .group-row-name-input { font-family: 'Playfair Display', serif; font-size: 0.95rem; font-weight: 700; background: transparent; border: none; border-bottom: 1.5px solid transparent; outline: none; flex: 1; color: var(--ink); padding: 0.15rem 0.1rem; transition: border-color 0.2s; min-width: 0; }
+  .group-row-name-input:focus { border-bottom-color: var(--gold); background: white; padding: 0.15rem 0.4rem; border-radius: 2px 2px 0 0; }
+  .group-row-meta { font-size: 0.65rem; color: var(--muted); letter-spacing: 0.05em; white-space: nowrap; flex-shrink: 0; }
+  .group-row-actions { display: flex; gap: 0.3rem; flex-shrink: 0; }
+  .btn-save { font-family: 'DM Mono', monospace; font-size: 0.65rem; letter-spacing: 0.08em; text-transform: uppercase; background: var(--sage); color: white; border: none; border-radius: 2px; padding: 0.3rem 0.6rem; cursor: pointer; opacity: 0; transition: opacity 0.15s; }
+  .btn-save.visible { opacity: 1; }
+
+  .color-popover { position: fixed; background: white; border: 1px solid var(--border); border-radius: 3px; box-shadow: 3px 3px 0 var(--border); padding: 0.6rem; display: flex; gap: 0.4rem; flex-wrap: wrap; width: 140px; z-index: 900; animation: fadeIn 0.15s ease; }
+  .color-popover .swatch { width: 18px; height: 18px; }
+
+  .edit-modal-overlay { position: fixed; inset: 0; background: rgba(26,26,24,0.5); backdrop-filter: blur(2px); z-index: 700; display: flex; align-items: center; justify-content: center; padding: 1rem; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
+  .edit-modal-overlay.open { opacity: 1; pointer-events: all; }
+  .edit-modal { background: var(--paper); border: 1px solid var(--border); border-radius: 3px; box-shadow: 8px 8px 0 var(--border); width: 100%; max-width: 480px; transform: translateY(10px); transition: transform 0.2s; }
+  .edit-modal-overlay.open .edit-modal { transform: translateY(0); }
+  .edit-modal-header { display: flex; align-items: center; justify-content: space-between; padding: 1.1rem 1.4rem 0.9rem; border-bottom: 1px solid var(--border); }
+  .edit-modal-header h3 { font-family: 'Playfair Display', serif; font-size: 1.1rem; font-weight: 700; }
+  .edit-modal-body { padding: 1.2rem 1.4rem; display: flex; flex-direction: column; gap: 0.9rem; }
+  .edit-field-label { font-size: 0.62rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.3rem; }
+  .edit-field input, .edit-field select, .edit-field textarea { font-family: 'DM Mono', monospace; font-size: 0.85rem; background: white; border: 1px solid var(--border); border-radius: 2px; padding: 0.6rem 0.8rem; color: var(--ink); outline: none; width: 100%; transition: border-color 0.2s; }
+  .edit-field input:focus, .edit-field select:focus, .edit-field textarea:focus { border-color: var(--gold); }
+  .edit-field textarea { resize: vertical; min-height: 70px; line-height: 1.5; }
+  .edit-modal-footer { display: flex; gap: 0.6rem; justify-content: flex-end; padding: 0.9rem 1.4rem 1.2rem; border-top: 1px solid var(--border); }
+
+  .confirm-overlay { position: fixed; inset: 0; background: rgba(26,26,24,0.45); z-index: 1200; display: flex; align-items: center; justify-content: center; padding: 1rem; animation: fadeIn 0.15s ease; }
+  .confirm-box { background: var(--paper); border: 1px solid var(--border); border-radius: 3px; box-shadow: 6px 6px 0 var(--border); padding: 1.5rem; max-width: 360px; width: 100%; }
+  .confirm-box-title { font-family: 'Playfair Display', serif; font-size: 1.1rem; font-weight: 700; margin-bottom: 0.5rem; }
+  .confirm-box-msg { font-size: 0.8rem; color: var(--muted); line-height: 1.5; margin-bottom: 1.2rem; }
+  .confirm-box-actions { display: flex; gap: 0.6rem; justify-content: flex-end; }
+  .btn-confirm-cancel { font-family: 'DM Mono', monospace; font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase; background: transparent; color: var(--muted); border: 1px solid var(--border); border-radius: 2px; padding: 0.5rem 1rem; cursor: pointer; transition: all 0.15s; }
+  .btn-confirm-cancel:hover { border-color: var(--ink); color: var(--ink); }
+  .btn-confirm-delete { font-family: 'DM Mono', monospace; font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase; background: var(--rust); color: white; border: none; border-radius: 2px; padding: 0.5rem 1rem; cursor: pointer; transition: all 0.15s; }
+  .btn-confirm-delete:hover { background: #a04828; }
+
+  @media (max-width:500px) {
+    .form-row { flex-direction: column; }
+    .form-row input, .form-row select { width: 100%; }
+    .login-form-body { padding: 1.2rem; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ── LOGIN SCREEN ──────────────────────────────────────────────────────── -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-top">
+      <h1>Meine<br><span>Aufgaben</span></h1>
+      <p>Persönlicher Aufgaben-Manager</p>
+    </div>
+    <div class="login-tabs">
+      <button class="login-tab active" id="tab-login" onclick="switchTab('login')">Anmelden</button>
+      <button class="login-tab" id="tab-register" onclick="switchTab('register')">Registrieren</button>
+    </div>
+    <div class="login-form-body">
+      <div class="login-error" id="login-error"></div>
+      <div class="login-field">
+        <label>Benutzername</label>
+        <input type="text" id="auth-username" autocomplete="username" placeholder="dein_name" />
+      </div>
+      <div class="login-field">
+        <label>Passwort</label>
+        <input type="password" id="auth-password" autocomplete="current-password" placeholder="••••••••" />
+      </div>
+      <div class="login-field" id="register-confirm-field" style="display:none;">
+        <label>Passwort bestätigen</label>
+        <input type="password" id="auth-password2" autocomplete="new-password" placeholder="••••••••" />
+      </div>
+      <button class="btn-login" id="auth-submit-btn" onclick="submitAuth()">Anmelden</button>
+      <div class="login-hint" id="login-hint">Noch kein Konto? Wechsle zum Tab „Registrieren".</div>
+    </div>
+  </div>
+</div>
+
+<!-- ── APP SCREEN ────────────────────────────────────────────────────────── -->
+<div id="app-screen">
+<div class="container">
+
+  <header>
+    <h1>Meine<br><span>Aufgaben</span></h1>
+    <div class="header-right">
+      <div class="header-meta" id="today-display"></div>
+      <div class="user-bar">
+        <div class="user-badge">👤 <strong id="user-display"></strong></div>
+        <button class="btn-logout" onclick="logout()">Abmelden</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="stats">
+    <div class="stat"><div class="stat-num" id="stat-total">0</div><div class="stat-label">Gesamt</div></div>
+    <div class="stat"><div class="stat-num sage" id="stat-done">0</div><div class="stat-label">Erledigt</div></div>
+    <div class="stat"><div class="stat-num rust" id="stat-overdue">0</div><div class="stat-label">Überfällig</div></div>
+    <div class="stat"><div class="stat-num gold" id="stat-today">0</div><div class="stat-label">Heute fällig</div></div>
+  </div>
+
+  <div class="add-form">
+    <div class="form-title">＋ Neue Aufgabe</div>
+    <div class="form-row">
+      <input type="text" id="task-input" placeholder="Aufgabe beschreiben …" />
+      <input type="date" id="deadline-input" />
+    </div>
+    <div class="form-row">
+      <select id="group-select"><option value="">— Keine Gruppe —</option></select>
+      <button class="btn btn-primary" onclick="addTask()">Hinzufügen</button>
+    </div>
+    <details style="margin-top:0.5rem;">
+      <summary style="font-size:0.7rem;color:var(--muted);cursor:pointer;letter-spacing:0.08em;list-style:none;user-select:none;">▸ Neue Gruppe erstellen</summary>
+      <div style="margin-top:0.75rem;">
+        <div class="form-group-new">
+          <input type="text" id="group-name-input" placeholder="Gruppenname …" />
+          <div class="color-picker" id="color-picker"></div>
+          <button class="btn btn-ghost" onclick="createGroup()">Erstellen</button>
+        </div>
+      </div>
+    </details>
+  </div>
+
+  <div class="filter-bar">
+    <label class="toggle-label"><input type="checkbox" id="hide-done" onchange="render()" /> Erledigte ausblenden</label>
+    <label class="toggle-label"><input type="checkbox" id="show-overdue-only" onchange="render()" /> Nur überfällige</label>
+    <button class="manage-groups-btn" onclick="openModal()">⊞ Gruppen verwalten</button>
+  </div>
+
+  <!-- GROUPS MODAL -->
+  <div class="modal-overlay" id="modal-overlay" onclick="handleOverlayClick(event)">
+    <div class="modal">
+      <div class="modal-header">
+        <h2>Gruppen verwalten</h2>
+        <button class="modal-close" onclick="closeModal()">✕</button>
+      </div>
+      <div class="modal-body" id="modal-body"></div>
+    </div>
+  </div>
+
+  <!-- EDIT TASK MODAL -->
+  <div class="edit-modal-overlay" id="edit-modal-overlay" onclick="handleEditOverlayClick(event)">
+    <div class="edit-modal">
+      <div class="edit-modal-header">
+        <h3>Aufgabe bearbeiten</h3>
+        <button class="modal-close" onclick="closeEditTask()">✕</button>
+      </div>
+      <div class="edit-modal-body">
+        <div class="edit-field">
+          <div class="edit-field-label">Aufgabe</div>
+          <textarea id="edit-text" rows="2"></textarea>
+        </div>
+        <div class="edit-field">
+          <div class="edit-field-label">Fälligkeit</div>
+          <input type="date" id="edit-deadline" />
+        </div>
+        <div class="edit-field">
+          <div class="edit-field-label">Gruppe</div>
+          <select id="edit-group"></select>
+        </div>
+      </div>
+      <div class="edit-modal-footer">
+        <button class="btn-confirm-cancel" onclick="closeEditTask()">Abbrechen</button>
+        <button class="btn btn-primary" onclick="saveEditTask()">Speichern</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="app"></div>
+</div>
+</div>
+
+<!-- Notification -->
+<div class="notification-bar" id="notif-bar">
+  <button class="notification-close" onclick="closeNotif()">✕</button>
+  <div class="notification-title">⚠ Erinnerung</div>
+  <div id="notif-msg"></div>
+</div>
+
+<script>
+// ─── AUTH & STATE ─────────────────────────────────────────────────────────────
+const GROUP_COLORS = ['#c8a84b','#b85c38','#6b8f71','#5b7fa6','#9b6ea8','#d4845a','#4a8fa8','#a86e5b'];
+let selectedColor = GROUP_COLORS[0];
+let currentUser = null;
+let state = { groups: [], tasks: [] };
+let _authMode = 'login';
+
+function getUsers() { return JSON.parse(localStorage.getItem('todo_users') || '{}'); }
+function saveUsers(u) { localStorage.setItem('todo_users', JSON.stringify(u)); }
+function userKey(u) { return 'todo_data_' + u.toLowerCase(); }
+function loadUserState(u) { const r = localStorage.getItem(userKey(u)); return r ? JSON.parse(r) : { groups:[], tasks:[] }; }
+function save() { if (currentUser) localStorage.setItem(userKey(currentUser), JSON.stringify(state)); }
+
+async function hashPassword(pw) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pw));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+}
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  const session = sessionStorage.getItem('todo_session');
+  if (session && getUsers()[session.toLowerCase()]) {
+    loginAs(session);
+  } else {
+    showLoginScreen('login');
+  }
+
+  // Enter on login fields
+  ['auth-username','auth-password','auth-password2'].forEach(id => {
+    document.getElementById(id).addEventListener('keydown', e => {
+      if (e.key === 'Enter') submitAuth();
+    });
+  });
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') { closeModal(); closeEditTask(); }
+  });
+});
+
+// ─── LOGIN UI ─────────────────────────────────────────────────────────────────
+function showLoginScreen(mode) {
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('app-screen').style.display = 'none';
+  switchTab(mode || 'login');
+  setTimeout(() => document.getElementById('auth-username').focus(), 100);
+}
+
+function switchTab(mode) {
+  _authMode = mode;
+  document.getElementById('tab-login').classList.toggle('active', mode === 'login');
+  document.getElementById('tab-register').classList.toggle('active', mode === 'register');
+  document.getElementById('register-confirm-field').style.display = mode === 'register' ? '' : 'none';
+  document.getElementById('auth-submit-btn').textContent = mode === 'login' ? 'Anmelden' : 'Konto erstellen';
+  document.getElementById('login-hint').textContent = mode === 'login'
+    ? 'Noch kein Konto? Wechsle zum Tab „Registrieren".'
+    : 'Schon ein Konto? Wechsle zum Tab „Anmelden".';
+  document.getElementById('login-error').classList.remove('show');
+  document.getElementById('auth-password').value = '';
+  document.getElementById('auth-password2').value = '';
+}
+
+function setLoginError(msg) {
+  const el = document.getElementById('login-error');
+  el.textContent = msg; el.classList.add('show');
+}
+
+async function submitAuth() {
+  const username = document.getElementById('auth-username').value.trim();
+  const password = document.getElementById('auth-password').value;
+  if (!username) { setLoginError('Bitte Benutzernamen eingeben.'); return; }
+  if (username.length < 2) { setLoginError('Benutzername muss mind. 2 Zeichen lang sein.'); return; }
+  if (!password) { setLoginError('Bitte Passwort eingeben.'); return; }
+
+  const users = getUsers();
+  const key = username.toLowerCase();
+  const hash = await hashPassword(password);
+
+  if (_authMode === 'login') {
+    if (!users[key]) { setLoginError('Benutzer nicht gefunden. Bitte erst registrieren.'); return; }
+    if (users[key] !== hash) { setLoginError('Falsches Passwort.'); return; }
+    loginAs(username);
+  } else {
+    const pw2 = document.getElementById('auth-password2').value;
+    if (password !== pw2) { setLoginError('Passwörter stimmen nicht überein.'); return; }
+    if (password.length < 4) { setLoginError('Passwort muss mind. 4 Zeichen lang sein.'); return; }
+    if (users[key]) { setLoginError('Benutzername bereits vergeben.'); return; }
+    users[key] = hash;
+    saveUsers(users);
+    loginAs(username);
+  }
+}
+
+function loginAs(username) {
+  currentUser = username;
+  sessionStorage.setItem('todo_session', username);
+  state = loadUserState(username);
+
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app-screen').style.display = 'block';
+  document.getElementById('user-display').textContent = username;
+
+  const now = new Date();
+  document.getElementById('today-display').innerHTML =
+    now.toLocaleDateString('de-AT', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+
+  // Build color swatches
+  const cp = document.getElementById('color-picker');
+  cp.innerHTML = '';
+  GROUP_COLORS.forEach(c => {
+    const s = document.createElement('div');
+    s.className = 'swatch' + (c === selectedColor ? ' selected' : '');
+    s.style.background = c;
+    s.onclick = () => {
+      selectedColor = c;
+      document.querySelectorAll('#color-picker .swatch').forEach(el => el.classList.remove('selected'));
+      s.classList.add('selected');
+    };
+    cp.appendChild(s);
+  });
+
+  document.getElementById('task-input').addEventListener('keydown', e => { if(e.key==='Enter') addTask(); });
+  document.getElementById('group-name-input').addEventListener('keydown', e => { if(e.key==='Enter') createGroup(); });
+
+  render();
+  checkNotifications();
+  setInterval(checkNotifications, 60000);
+}
+
+function logout() {
+  sessionStorage.removeItem('todo_session');
+  currentUser = null;
+  state = { groups:[], tasks:[] };
+  document.getElementById('auth-username').value = '';
+  document.getElementById('auth-password').value = '';
+  document.getElementById('auth-password2').value = '';
+  showLoginScreen('login');
+}
+
+// ─── GROUPS ───────────────────────────────────────────────────────────────────
+function createGroup() {
+  const name = document.getElementById('group-name-input').value.trim();
+  if (!name) return;
+  state.groups.push({ id:uid(), name, color:selectedColor });
+  save(); updateGroupSelect(); render();
+  document.getElementById('group-name-input').value = '';
+}
+
+function deleteGroup(id) {
+  const g = state.groups.find(g => g.id===id);
+  const count = state.tasks.filter(t => t.groupId===id).length;
+  const sub = count > 0 ? `${count} Aufgabe(n) werden ohne Gruppe fortgeführt.` : 'Die Gruppe ist leer.';
+  showConfirm(`Gruppe "${g?.name}" löschen?`, sub, () => {
+    state.groups = state.groups.filter(g => g.id!==id);
+    state.tasks.forEach(t => { if(t.groupId===id) t.groupId=''; });
+    save(); render();
+  });
+}
+
+function updateGroupSelect() {
+  const sel = document.getElementById('group-select');
+  const val = sel.value;
+  sel.innerHTML = '<option value="">— Keine Gruppe —</option>';
+  state.groups.forEach(g => {
+    const opt = document.createElement('option');
+    opt.value = g.id; opt.textContent = g.name; sel.appendChild(opt);
+  });
+  sel.value = val;
+}
+
+// ─── TASKS ────────────────────────────────────────────────────────────────────
+function addTask() {
+  const text = document.getElementById('task-input').value.trim();
+  if (!text) return;
+  state.tasks.push({ id:uid(), text, groupId:document.getElementById('group-select').value, deadline:document.getElementById('deadline-input').value||'', done:false, doneAt:null, createdAt:Date.now() });
+  save();
+  document.getElementById('task-input').value = '';
+  document.getElementById('deadline-input').value = '';
+  render();
+}
+
+function toggleDone(id) {
+  const t = state.tasks.find(t => t.id===id);
+  if (!t) return;
+  t.done = !t.done; t.doneAt = t.done ? Date.now() : null;
+  save(); render();
+}
+
+function deleteTask(id) {
+  state.tasks = state.tasks.filter(t => t.id!==id);
+  save(); render();
+}
+
+// ─── RENDER ───────────────────────────────────────────────────────────────────
+function render() {
+  updateGroupSelect(); updateStats();
+  const app = document.getElementById('app');
+  const hideDone = document.getElementById('hide-done').checked;
+  const overdueOnly = document.getElementById('show-overdue-only').checked;
+
+  let tasks = state.tasks;
+  if (hideDone) tasks = tasks.filter(t => !t.done);
+  if (overdueOnly) tasks = tasks.filter(t => t.deadline && deadlineStatus(t.deadline)==='overdue' && !t.done);
+
+  if (tasks.length===0 && state.tasks.length===0) {
+    app.innerHTML = `<div class="empty"><div class="empty-icon">📋</div>Noch keine Aufgaben.<br>Füge oben deine erste Aufgabe hinzu.</div>`;
+    return;
+  }
+
+  let html = '<div class="groups-container">';
+
+  state.groups.forEach(g => {
+    const gTasks = tasks.filter(t => t.groupId===g.id);
+    const allGTasks = state.tasks.filter(t => t.groupId===g.id);
+    if (gTasks.length===0 && allGTasks.length===0) return;
+    const doneCount = allGTasks.filter(t => t.done).length;
+    html += `<div class="group">
+      <div class="group-header" onclick="toggleGroup('${g.id}')">
+        <div class="group-dot" style="background:${g.color}"></div>
+        <div class="group-name">${esc(g.name)}</div>
+        <div class="group-count">${doneCount}/${allGTasks.length} erledigt</div>
+        <div class="group-toggle" id="toggle-${g.id}">▾</div>
+        <button class="btn btn-danger" onclick="event.stopPropagation();deleteGroup('${g.id}')" title="Gruppe löschen">✕</button>
+      </div>
+      <div class="group-body" id="body-${g.id}">`;
+    if (gTasks.length===0) {
+      html += `<div style="padding:1rem 1.2rem;font-size:0.75rem;color:var(--muted);">Alle Aufgaben erledigt ✓</div>`;
+    } else {
+      gTasks.forEach(t => { html += renderTask(t); });
+    }
+    html += `</div></div>`;
+  });
+
+  const ungrouped = tasks.filter(t => !t.groupId);
+  if (ungrouped.length > 0) {
+    html += `<div class="ungrouped"><div class="ungrouped-header">Ohne Gruppe</div>`;
+    ungrouped.forEach(t => { html += renderTask(t); });
+    html += `</div>`;
+  }
+  html += '</div>';
+  app.innerHTML = html;
+}
+
+function renderTask(t) {
+  const checked = t.done ? 'checked' : '';
+  const doneClass = t.done ? 'done' : '';
+  let deadlineBadge = '';
+  if (t.deadline && !t.done) {
+    const status = deadlineStatus(t.deadline);
+    deadlineBadge = `<span class="deadline-badge ${status}">${formatDeadline(t.deadline, status)}</span>`;
+  } else if (t.deadline && t.done) {
+    deadlineBadge = `<span class="deadline-badge ok">✓ ${formatDate(t.deadline)}</span>`;
+  }
+  return `<div class="task ${doneClass}" id="task-${t.id}">
+    <div class="task-check ${checked}" onclick="toggleDone('${t.id}')"></div>
+    <div class="task-body">
+      <div class="task-text">${esc(t.text)}</div>
+      <div class="task-meta">${deadlineBadge}</div>
+    </div>
+    <div class="task-actions">
+      <button class="btn-edit" onclick="openEditTask('${t.id}')" title="Bearbeiten">✎</button>
+      <button class="btn btn-danger" onclick="deleteTask('${t.id}')" title="Löschen">✕</button>
+    </div>
+  </div>`;
+}
+
+function toggleGroup(id) {
+  const body = document.getElementById('body-'+id);
+  const arrow = document.getElementById('toggle-'+id);
+  body.classList.toggle('hidden');
+  arrow.classList.toggle('collapsed', body.classList.contains('hidden'));
+}
+
+// ─── STATS ────────────────────────────────────────────────────────────────────
+function updateStats() {
+  const total = state.tasks.length;
+  const done = state.tasks.filter(t => t.done).length;
+  const today = todayStr();
+  const overdue = state.tasks.filter(t => !t.done && t.deadline && t.deadline < today).length;
+  const todayDue = state.tasks.filter(t => !t.done && t.deadline===today).length;
+  document.getElementById('stat-total').textContent = total;
+  document.getElementById('stat-done').textContent = done;
+  document.getElementById('stat-overdue').textContent = overdue;
+  document.getElementById('stat-today').textContent = todayDue;
+}
+
+// ─── NOTIFICATIONS ────────────────────────────────────────────────────────────
+function checkNotifications() {
+  const now = Date.now();
+  const oneDayMs = 24*60*60*1000;
+  const alerts = [];
+  state.tasks.forEach(t => {
+    if (t.done) return;
+    if (t.deadline) {
+      const deadlineTime = new Date(t.deadline+'T23:59:59').getTime();
+      if (now > deadlineTime) { alerts.push(`• "${t.text}" — Deadline war am ${formatDate(t.deadline)}`); return; }
+      if (t.deadline===todayStr()) alerts.push(`• "${t.text}" — Heute fällig!`);
+    } else if (now - t.createdAt > oneDayMs) {
+      alerts.push(`• "${t.text}" — Seit mehr als 24h offen`);
+    }
+  });
+  if (alerts.length > 0) showNotif(alerts.slice(0,3).join('\n') + (alerts.length>3 ? `\n… und ${alerts.length-3} weitere` : ''));
+}
+
+function showNotif(msg) {
+  document.getElementById('notif-msg').textContent = msg;
+  document.getElementById('notif-bar').classList.add('show');
+  setTimeout(closeNotif, 8000);
+}
+function closeNotif() { document.getElementById('notif-bar').classList.remove('show'); }
+
+// ─── EDIT TASK ────────────────────────────────────────────────────────────────
+let _editingTaskId = null;
+
+function openEditTask(id) {
+  const t = state.tasks.find(t => t.id===id);
+  if (!t) return;
+  _editingTaskId = id;
+  document.getElementById('edit-text').value = t.text;
+  document.getElementById('edit-deadline').value = t.deadline || '';
+  const sel = document.getElementById('edit-group');
+  sel.innerHTML = '<option value="">— Keine Gruppe —</option>';
+  state.groups.forEach(g => {
+    const opt = document.createElement('option');
+    opt.value = g.id; opt.textContent = g.name;
+    if (g.id===t.groupId) opt.selected = true;
+    sel.appendChild(opt);
+  });
+  document.getElementById('edit-modal-overlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+  setTimeout(() => document.getElementById('edit-text').focus(), 100);
+}
+
+function closeEditTask() {
+  document.getElementById('edit-modal-overlay').classList.remove('open');
+  document.body.style.overflow = '';
+  _editingTaskId = null;
+}
+
+function handleEditOverlayClick(e) { if (e.target===document.getElementById('edit-modal-overlay')) closeEditTask(); }
+
+function saveEditTask() {
+  if (!_editingTaskId) return;
+  const t = state.tasks.find(t => t.id===_editingTaskId);
+  if (!t) return;
+  const text = document.getElementById('edit-text').value.trim();
+  if (!text) return;
+  t.text = text;
+  t.deadline = document.getElementById('edit-deadline').value || '';
+  t.groupId = document.getElementById('edit-group').value;
+  save(); render(); closeEditTask();
+}
+
+// ─── GROUP MODAL ──────────────────────────────────────────────────────────────
+function openModal() { renderModal(); document.getElementById('modal-overlay').classList.add('open'); document.body.style.overflow='hidden'; }
+function closeModal() { document.getElementById('modal-overlay').classList.remove('open'); document.body.style.overflow=''; closeColorPopover(); }
+function handleOverlayClick(e) { if (e.target===document.getElementById('modal-overlay')) closeModal(); }
+
+function renderModal() {
+  const body = document.getElementById('modal-body');
+  if (state.groups.length===0) {
+    body.innerHTML = `<div class="modal-empty">Noch keine Gruppen vorhanden.<br>Erstelle eine Gruppe im Formular oben.</div>`;
+    return;
+  }
+  let html = '';
+  state.groups.forEach(g => {
+    const taskCount = state.tasks.filter(t => t.groupId===g.id).length;
+    const doneCount = state.tasks.filter(t => t.groupId===g.id && t.done).length;
+    html += `<div class="group-row" id="grow-${g.id}">
+      <div class="group-row-dot" style="background:${g.color}" onclick="openColorPopover('${g.id}',this)" title="Farbe ändern"></div>
+      <input class="group-row-name-input" id="gname-${g.id}" type="text" value="${esc(g.name)}"
+        onkeydown="handleGroupNameKey(event,'${g.id}')" oninput="showSaveBtn('${g.id}')" />
+      <div class="group-row-meta">${taskCount} Aufgaben · ${doneCount} erledigt</div>
+      <div class="group-row-actions">
+        <button class="btn-save" id="gsave-${g.id}" onclick="saveGroupName('${g.id}')">Speichern</button>
+        <button class="btn btn-danger" onclick="deleteGroupFromModal('${g.id}')" title="Gruppe löschen">✕</button>
+      </div>
+    </div>`;
+  });
+  body.innerHTML = html;
+}
+
+function showSaveBtn(id) { document.getElementById('gsave-'+id).classList.add('visible'); }
+
+function handleGroupNameKey(e, id) {
+  if (e.key==='Enter') { e.preventDefault(); saveGroupName(id); }
+  if (e.key==='Escape') {
+    const g = state.groups.find(g => g.id===id);
+    if (g) document.getElementById('gname-'+id).value = g.name;
+    document.getElementById('gsave-'+id).classList.remove('visible');
+  }
+}
+
+function saveGroupName(id) {
+  const input = document.getElementById('gname-'+id);
+  const name = input.value.trim();
+  if (!name) { input.value = state.groups.find(g => g.id===id)?.name||''; return; }
+  const g = state.groups.find(g => g.id===id);
+  if (g) { g.name=name; save(); render(); updateGroupSelect(); }
+  document.getElementById('gsave-'+id).classList.remove('visible');
+  input.style.background='rgba(107,143,113,0.15)';
+  setTimeout(() => { input.style.background=''; }, 600);
+}
+
+function deleteGroupFromModal(id) {
+  const g = state.groups.find(g => g.id===id);
+  const count = state.tasks.filter(t => t.groupId===id).length;
+  const sub = count>0 ? `${count} Aufgabe(n) werden ohne Gruppe fortgeführt.` : 'Die Gruppe ist leer.';
+  showConfirm(`Gruppe "${g?.name}" löschen?`, sub, () => {
+    state.groups = state.groups.filter(g => g.id!==id);
+    state.tasks.forEach(t => { if(t.groupId===id) t.groupId=''; });
+    save(); render(); renderModal(); closeColorPopover();
+  });
+}
+
+// ─── COLOR POPOVER ────────────────────────────────────────────────────────────
+let _colorPopover = null;
+
+function openColorPopover(groupId, dotEl) {
+  closeColorPopover();
+  const popover = document.createElement('div');
+  popover.className = 'color-popover';
+  GROUP_COLORS.forEach(c => {
+    const s = document.createElement('div');
+    s.className = 'swatch';
+    s.style.background = c;
+    const g = state.groups.find(g => g.id===groupId);
+    if (g && g.color===c) s.classList.add('selected');
+    s.onclick = e => {
+      e.stopPropagation();
+      if (g) { g.color=c; save(); render(); renderModal(); }
+      closeColorPopover();
+    };
+    popover.appendChild(s);
+  });
+  const rect = dotEl.getBoundingClientRect();
+  popover.style.top=(rect.bottom+6)+'px';
+  popover.style.left=Math.max(8,rect.left-20)+'px';
+  document.body.appendChild(popover);
+  _colorPopover = popover;
+  setTimeout(() => document.addEventListener('click', closeColorPopover, {once:true}), 10);
+}
+
+function closeColorPopover() { if(_colorPopover){_colorPopover.remove();_colorPopover=null;} }
+
+// ─── CUSTOM CONFIRM ───────────────────────────────────────────────────────────
+function showConfirm(title, message, onConfirm) {
+  const existing = document.getElementById('confirm-overlay');
+  if (existing) existing.remove();
+  const overlay = document.createElement('div');
+  overlay.className='confirm-overlay'; overlay.id='confirm-overlay';
+  overlay.innerHTML=`<div class="confirm-box">
+    <div class="confirm-box-title">${esc(title)}</div>
+    <div class="confirm-box-msg">${esc(message)}</div>
+    <div class="confirm-box-actions">
+      <button class="btn-confirm-cancel" id="confirm-cancel">Abbrechen</button>
+      <button class="btn-confirm-delete" id="confirm-ok">Löschen</button>
+    </div>
+  </div>`;
+  document.body.appendChild(overlay);
+  document.getElementById('confirm-cancel').onclick = () => overlay.remove();
+  document.getElementById('confirm-ok').onclick = () => { overlay.remove(); onConfirm(); };
+  overlay.addEventListener('click', e => { if(e.target===overlay) overlay.remove(); });
+  setTimeout(() => document.getElementById('confirm-cancel')?.focus(), 50);
+}
+
+// ─── HELPERS ─────────────────────────────────────────────────────────────────
+function deadlineStatus(d) {
+  const today = todayStr();
+  const diff = (new Date(d)-new Date(today))/(1000*60*60*24);
+  if (d<today) return 'overdue';
+  if (diff===0) return 'alert';
+  if (diff<=2) return 'soon';
+  return 'ok';
+}
+function formatDeadline(d, status) {
+  const diff = Math.round((new Date(d)-new Date(todayStr()))/(1000*60*60*24));
+  if (status==='overdue') return `Überfällig seit ${formatDate(d)}`;
+  if (status==='alert') return `⚠ Heute fällig!`;
+  if (diff===1) return `Morgen fällig`;
+  return `Fällig: ${formatDate(d)}`;
+}
+function formatDate(d) { if(!d) return ''; const [y,m,day]=d.split('-'); return `${day}.${m}.${y}`; }
+function todayStr() { return new Date().toISOString().split('T')[0]; }
+function uid() { return Math.random().toString(36).slice(2)+Date.now().toString(36); }
+function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+</script>
+</body>
+</html>
