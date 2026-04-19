@@ -27,10 +27,29 @@
     background-image: repeating-linear-gradient(0deg, transparent, transparent 27px, rgba(200,168,75,0.08) 27px, rgba(200,168,75,0.08) 28px);
   }
 
+  /* ── LOADING ───────────────────────────────────── */
+  #loading-screen {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 1rem;
+  }
+  .loading-spinner {
+    width: 32px; height: 32px;
+    border: 3px solid var(--border);
+    border-top-color: var(--gold);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loading-text { font-size: 0.75rem; letter-spacing: 0.1em; color: var(--muted); text-transform: uppercase; }
+
   /* ── LOGIN SCREEN ───────────────────────────────── */
   #login-screen {
     min-height: 100vh;
-    display: flex;
+    display: none;
     align-items: center;
     justify-content: center;
     padding: 1.5rem;
@@ -144,6 +163,7 @@
     margin-top: 0.25rem;
   }
   .btn-login:hover { background: var(--gold); color: var(--ink); }
+  .btn-login:disabled { opacity: 0.6; cursor: not-allowed; }
 
   .login-hint {
     font-size: 0.68rem;
@@ -322,6 +342,12 @@
 </head>
 <body>
 
+<!-- ── LOADING ──────────────────────────────────────────────────────────── -->
+<div id="loading-screen">
+  <div class="loading-spinner"></div>
+  <div class="loading-text">Verbinde…</div>
+</div>
+
 <!-- ── LOGIN SCREEN ──────────────────────────────────────────────────────── -->
 <div id="login-screen">
   <div class="login-card">
@@ -336,8 +362,8 @@
     <div class="login-form-body">
       <div class="login-error" id="login-error"></div>
       <div class="login-field">
-        <label>Benutzername</label>
-        <input type="text" id="auth-username" autocomplete="username" placeholder="dein_name" />
+        <label>E-Mail</label>
+        <input type="email" id="auth-email" autocomplete="email" placeholder="deine@email.com" />
       </div>
       <div class="login-field">
         <label>Passwort</label>
@@ -453,55 +479,115 @@
   <div id="notif-msg"></div>
 </div>
 
-<script>
-// ─── AUTH & STATE ─────────────────────────────────────────────────────────────
+<!-- Firebase SDK -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getFirestore, doc, setDoc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+// ─── FIREBASE CONFIG ──────────────────────────────────────────────────────────
+const firebaseConfig = {
+  apiKey: "AIzaSyBxexxYFgJkmSFYHq5Jomul7H6ozUYZND0",
+  authDomain: "meine-aufgaben-df2d4.firebaseapp.com",
+  projectId: "meine-aufgaben-df2d4",
+  storageBucket: "meine-aufgaben-df2d4.firebasestorage.app",
+  messagingSenderId: "6644574915",
+  appId: "1:6644574915:web:fe001fe5ed617c5be51076",
+  measurementId: "G-60RN6J9000"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+// ─── STATE ────────────────────────────────────────────────────────────────────
 const GROUP_COLORS = ['#c8a84b','#b85c38','#6b8f71','#5b7fa6','#9b6ea8','#d4845a','#4a8fa8','#a86e5b'];
 let selectedColor = GROUP_COLORS[0];
 let currentUser = null;
 let state = { groups: [], tasks: [] };
 let _authMode = 'login';
+let _editingTaskId = null;
+let _colorPopover = null;
+let _unsubscribe = null;
 
-function getUsers() { return JSON.parse(localStorage.getItem('todo_users') || '{}'); }
-function saveUsers(u) { localStorage.setItem('todo_users', JSON.stringify(u)); }
-function userKey(u) { return 'todo_data_' + u.toLowerCase(); }
-function loadUserState(u) { const r = localStorage.getItem(userKey(u)); return r ? JSON.parse(r) : { groups:[], tasks:[] }; }
-function save() { if (currentUser) localStorage.setItem(userKey(currentUser), JSON.stringify(state)); }
-
-async function hashPassword(pw) {
-  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pw));
-  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+// ─── FIREBASE SAVE/LOAD ───────────────────────────────────────────────────────
+async function saveToFirebase() {
+  if (!currentUser) return;
+  try {
+    await setDoc(doc(db, 'users', currentUser.uid), state);
+  } catch(e) {
+    console.error('Speicherfehler:', e);
+  }
 }
 
-// ─── INIT ─────────────────────────────────────────────────────────────────────
-document.addEventListener('DOMContentLoaded', () => {
-  const session = sessionStorage.getItem('todo_session');
-  if (session && getUsers()[session.toLowerCase()]) {
-    loginAs(session);
+function subscribeToData(uid) {
+  if (_unsubscribe) _unsubscribe();
+  _unsubscribe = onSnapshot(doc(db, 'users', uid), (snap) => {
+    if (snap.exists()) {
+      state = snap.data();
+      if (!state.groups) state.groups = [];
+      if (!state.tasks) state.tasks = [];
+    } else {
+      state = { groups: [], tasks: [] };
+    }
+    render();
+    checkNotifications();
+  });
+}
+
+// ─── AUTH STATE ───────────────────────────────────────────────────────────────
+onAuthStateChanged(auth, (user) => {
+  document.getElementById('loading-screen').style.display = 'none';
+  if (user) {
+    currentUser = user;
+    showAppScreen(user);
+    subscribeToData(user.uid);
   } else {
+    currentUser = null;
+    if (_unsubscribe) { _unsubscribe(); _unsubscribe = null; }
     showLoginScreen('login');
   }
-
-  // Enter on login fields
-  ['auth-username','auth-password','auth-password2'].forEach(id => {
-    document.getElementById(id).addEventListener('keydown', e => {
-      if (e.key === 'Enter') submitAuth();
-    });
-  });
-
-  document.addEventListener('keydown', e => {
-    if (e.key === 'Escape') { closeModal(); closeEditTask(); }
-  });
 });
 
-// ─── LOGIN UI ─────────────────────────────────────────────────────────────────
 function showLoginScreen(mode) {
   document.getElementById('login-screen').style.display = 'flex';
   document.getElementById('app-screen').style.display = 'none';
   switchTab(mode || 'login');
-  setTimeout(() => document.getElementById('auth-username').focus(), 100);
+  setTimeout(() => document.getElementById('auth-email').focus(), 100);
 }
 
-function switchTab(mode) {
+function showAppScreen(user) {
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app-screen').style.display = 'block';
+  // Zeige E-Mail ohne Domain als Name
+  const displayName = user.email.split('@')[0];
+  document.getElementById('user-display').textContent = displayName;
+  const now = new Date();
+  document.getElementById('today-display').innerHTML =
+    now.toLocaleDateString('de-AT', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+
+  // Farbauswahl aufbauen
+  const cp = document.getElementById('color-picker');
+  cp.innerHTML = '';
+  GROUP_COLORS.forEach(c => {
+    const s = document.createElement('div');
+    s.className = 'swatch' + (c === selectedColor ? ' selected' : '');
+    s.style.background = c;
+    s.onclick = () => {
+      selectedColor = c;
+      document.querySelectorAll('#color-picker .swatch').forEach(el => el.classList.remove('selected'));
+      s.classList.add('selected');
+    };
+    cp.appendChild(s);
+  });
+
+  document.getElementById('task-input').addEventListener('keydown', e => { if(e.key==='Enter') addTask(); });
+  document.getElementById('group-name-input').addEventListener('keydown', e => { if(e.key==='Enter') createGroup(); });
+  setInterval(checkNotifications, 60000);
+}
+
+// ─── AUTH FUNCTIONS ───────────────────────────────────────────────────────────
+window.switchTab = function(mode) {
   _authMode = mode;
   document.getElementById('tab-login').classList.toggle('active', mode === 'login');
   document.getElementById('tab-register').classList.toggle('active', mode === 'register');
@@ -520,95 +606,76 @@ function setLoginError(msg) {
   el.textContent = msg; el.classList.add('show');
 }
 
-async function submitAuth() {
-  const username = document.getElementById('auth-username').value.trim();
+window.submitAuth = async function() {
+  const email = document.getElementById('auth-email').value.trim();
   const password = document.getElementById('auth-password').value;
-  if (!username) { setLoginError('Bitte Benutzernamen eingeben.'); return; }
-  if (username.length < 2) { setLoginError('Benutzername muss mind. 2 Zeichen lang sein.'); return; }
+  const btn = document.getElementById('auth-submit-btn');
+
+  if (!email) { setLoginError('Bitte E-Mail eingeben.'); return; }
   if (!password) { setLoginError('Bitte Passwort eingeben.'); return; }
 
-  const users = getUsers();
-  const key = username.toLowerCase();
-  const hash = await hashPassword(password);
+  btn.disabled = true;
+  btn.textContent = '…';
 
-  if (_authMode === 'login') {
-    if (!users[key]) { setLoginError('Benutzer nicht gefunden. Bitte erst registrieren.'); return; }
-    if (users[key] !== hash) { setLoginError('Falsches Passwort.'); return; }
-    loginAs(username);
-  } else {
-    const pw2 = document.getElementById('auth-password2').value;
-    if (password !== pw2) { setLoginError('Passwörter stimmen nicht überein.'); return; }
-    if (password.length < 4) { setLoginError('Passwort muss mind. 4 Zeichen lang sein.'); return; }
-    if (users[key]) { setLoginError('Benutzername bereits vergeben.'); return; }
-    users[key] = hash;
-    saveUsers(users);
-    loginAs(username);
+  try {
+    if (_authMode === 'login') {
+      await signInWithEmailAndPassword(auth, email, password);
+    } else {
+      const pw2 = document.getElementById('auth-password2').value;
+      if (password !== pw2) { setLoginError('Passwörter stimmen nicht überein.'); btn.disabled=false; btn.textContent='Konto erstellen'; return; }
+      if (password.length < 6) { setLoginError('Passwort muss mind. 6 Zeichen lang sein.'); btn.disabled=false; btn.textContent='Konto erstellen'; return; }
+      await createUserWithEmailAndPassword(auth, email, password);
+    }
+  } catch(e) {
+    btn.disabled = false;
+    btn.textContent = _authMode === 'login' ? 'Anmelden' : 'Konto erstellen';
+    const msgs = {
+      'auth/user-not-found': 'Benutzer nicht gefunden.',
+      'auth/wrong-password': 'Falsches Passwort.',
+      'auth/email-already-in-use': 'E-Mail bereits vergeben.',
+      'auth/invalid-email': 'Ungültige E-Mail-Adresse.',
+      'auth/invalid-credential': 'E-Mail oder Passwort falsch.',
+      'auth/too-many-requests': 'Zu viele Versuche. Bitte warte kurz.',
+    };
+    setLoginError(msgs[e.code] || 'Fehler: ' + e.message);
   }
 }
 
-function loginAs(username) {
-  currentUser = username;
-  sessionStorage.setItem('todo_session', username);
-  state = loadUserState(username);
-
-  document.getElementById('login-screen').style.display = 'none';
-  document.getElementById('app-screen').style.display = 'block';
-  document.getElementById('user-display').textContent = username;
-
-  const now = new Date();
-  document.getElementById('today-display').innerHTML =
-    now.toLocaleDateString('de-AT', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
-
-  // Build color swatches
-  const cp = document.getElementById('color-picker');
-  cp.innerHTML = '';
-  GROUP_COLORS.forEach(c => {
-    const s = document.createElement('div');
-    s.className = 'swatch' + (c === selectedColor ? ' selected' : '');
-    s.style.background = c;
-    s.onclick = () => {
-      selectedColor = c;
-      document.querySelectorAll('#color-picker .swatch').forEach(el => el.classList.remove('selected'));
-      s.classList.add('selected');
-    };
-    cp.appendChild(s);
-  });
-
-  document.getElementById('task-input').addEventListener('keydown', e => { if(e.key==='Enter') addTask(); });
-  document.getElementById('group-name-input').addEventListener('keydown', e => { if(e.key==='Enter') createGroup(); });
-
-  render();
-  checkNotifications();
-  setInterval(checkNotifications, 60000);
-}
-
-function logout() {
-  sessionStorage.removeItem('todo_session');
-  currentUser = null;
-  state = { groups:[], tasks:[] };
-  document.getElementById('auth-username').value = '';
+window.logout = async function() {
+  await signOut(auth);
+  state = { groups: [], tasks: [] };
+  document.getElementById('auth-email').value = '';
   document.getElementById('auth-password').value = '';
   document.getElementById('auth-password2').value = '';
-  showLoginScreen('login');
 }
 
+// ─── KEYBOARD SHORTCUTS ───────────────────────────────────────────────────────
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && document.getElementById('login-screen').style.display !== 'none') {
+    submitAuth();
+  }
+  if (e.key === 'Escape') { closeModal(); closeEditTask(); }
+});
+
 // ─── GROUPS ───────────────────────────────────────────────────────────────────
-function createGroup() {
+window.createGroup = function() {
   const name = document.getElementById('group-name-input').value.trim();
   if (!name) return;
-  state.groups.push({ id:uid(), name, color:selectedColor });
-  save(); updateGroupSelect(); render();
+  state.groups.push({ id: uid(), name, color: selectedColor });
+  saveToFirebase();
+  updateGroupSelect();
+  render();
   document.getElementById('group-name-input').value = '';
 }
 
-function deleteGroup(id) {
+window.deleteGroup = function(id) {
   const g = state.groups.find(g => g.id===id);
   const count = state.tasks.filter(t => t.groupId===id).length;
   const sub = count > 0 ? `${count} Aufgabe(n) werden ohne Gruppe fortgeführt.` : 'Die Gruppe ist leer.';
   showConfirm(`Gruppe "${g?.name}" löschen?`, sub, () => {
     state.groups = state.groups.filter(g => g.id!==id);
     state.tasks.forEach(t => { if(t.groupId===id) t.groupId=''; });
-    save(); render();
+    saveToFirebase(); render();
   });
 }
 
@@ -624,26 +691,31 @@ function updateGroupSelect() {
 }
 
 // ─── TASKS ────────────────────────────────────────────────────────────────────
-function addTask() {
+window.addTask = function() {
   const text = document.getElementById('task-input').value.trim();
   if (!text) return;
-  state.tasks.push({ id:uid(), text, groupId:document.getElementById('group-select').value, deadline:document.getElementById('deadline-input').value||'', done:false, doneAt:null, createdAt:Date.now() });
-  save();
+  state.tasks.push({
+    id: uid(), text,
+    groupId: document.getElementById('group-select').value,
+    deadline: document.getElementById('deadline-input').value || '',
+    done: false, doneAt: null, createdAt: Date.now()
+  });
+  saveToFirebase();
   document.getElementById('task-input').value = '';
   document.getElementById('deadline-input').value = '';
   render();
 }
 
-function toggleDone(id) {
+window.toggleDone = function(id) {
   const t = state.tasks.find(t => t.id===id);
   if (!t) return;
   t.done = !t.done; t.doneAt = t.done ? Date.now() : null;
-  save(); render();
+  saveToFirebase(); render();
 }
 
-function deleteTask(id) {
+window.deleteTask = function(id) {
   state.tasks = state.tasks.filter(t => t.id!==id);
-  save(); render();
+  saveToFirebase(); render();
 }
 
 // ─── RENDER ───────────────────────────────────────────────────────────────────
@@ -663,7 +735,6 @@ function render() {
   }
 
   let html = '<div class="groups-container">';
-
   state.groups.forEach(g => {
     const gTasks = tasks.filter(t => t.groupId===g.id);
     const allGTasks = state.tasks.filter(t => t.groupId===g.id);
@@ -696,6 +767,8 @@ function render() {
   app.innerHTML = html;
 }
 
+window.render = render;
+
 function renderTask(t) {
   const checked = t.done ? 'checked' : '';
   const doneClass = t.done ? 'done' : '';
@@ -719,7 +792,7 @@ function renderTask(t) {
   </div>`;
 }
 
-function toggleGroup(id) {
+window.toggleGroup = function(id) {
   const body = document.getElementById('body-'+id);
   const arrow = document.getElementById('toggle-'+id);
   body.classList.toggle('hidden');
@@ -757,17 +830,15 @@ function checkNotifications() {
   if (alerts.length > 0) showNotif(alerts.slice(0,3).join('\n') + (alerts.length>3 ? `\n… und ${alerts.length-3} weitere` : ''));
 }
 
-function showNotif(msg) {
+window.showNotif = function(msg) {
   document.getElementById('notif-msg').textContent = msg;
   document.getElementById('notif-bar').classList.add('show');
   setTimeout(closeNotif, 8000);
 }
-function closeNotif() { document.getElementById('notif-bar').classList.remove('show'); }
+window.closeNotif = function() { document.getElementById('notif-bar').classList.remove('show'); }
 
 // ─── EDIT TASK ────────────────────────────────────────────────────────────────
-let _editingTaskId = null;
-
-function openEditTask(id) {
+window.openEditTask = function(id) {
   const t = state.tasks.find(t => t.id===id);
   if (!t) return;
   _editingTaskId = id;
@@ -786,15 +857,15 @@ function openEditTask(id) {
   setTimeout(() => document.getElementById('edit-text').focus(), 100);
 }
 
-function closeEditTask() {
+window.closeEditTask = function() {
   document.getElementById('edit-modal-overlay').classList.remove('open');
   document.body.style.overflow = '';
   _editingTaskId = null;
 }
 
-function handleEditOverlayClick(e) { if (e.target===document.getElementById('edit-modal-overlay')) closeEditTask(); }
+window.handleEditOverlayClick = function(e) { if (e.target===document.getElementById('edit-modal-overlay')) closeEditTask(); }
 
-function saveEditTask() {
+window.saveEditTask = function() {
   if (!_editingTaskId) return;
   const t = state.tasks.find(t => t.id===_editingTaskId);
   if (!t) return;
@@ -803,13 +874,13 @@ function saveEditTask() {
   t.text = text;
   t.deadline = document.getElementById('edit-deadline').value || '';
   t.groupId = document.getElementById('edit-group').value;
-  save(); render(); closeEditTask();
+  saveToFirebase(); render(); closeEditTask();
 }
 
 // ─── GROUP MODAL ──────────────────────────────────────────────────────────────
-function openModal() { renderModal(); document.getElementById('modal-overlay').classList.add('open'); document.body.style.overflow='hidden'; }
-function closeModal() { document.getElementById('modal-overlay').classList.remove('open'); document.body.style.overflow=''; closeColorPopover(); }
-function handleOverlayClick(e) { if (e.target===document.getElementById('modal-overlay')) closeModal(); }
+window.openModal = function() { renderModal(); document.getElementById('modal-overlay').classList.add('open'); document.body.style.overflow='hidden'; }
+window.closeModal = function() { document.getElementById('modal-overlay').classList.remove('open'); document.body.style.overflow=''; closeColorPopover(); }
+window.handleOverlayClick = function(e) { if (e.target===document.getElementById('modal-overlay')) closeModal(); }
 
 function renderModal() {
   const body = document.getElementById('modal-body');
@@ -835,9 +906,9 @@ function renderModal() {
   body.innerHTML = html;
 }
 
-function showSaveBtn(id) { document.getElementById('gsave-'+id).classList.add('visible'); }
+window.showSaveBtn = function(id) { document.getElementById('gsave-'+id).classList.add('visible'); }
 
-function handleGroupNameKey(e, id) {
+window.handleGroupNameKey = function(e, id) {
   if (e.key==='Enter') { e.preventDefault(); saveGroupName(id); }
   if (e.key==='Escape') {
     const g = state.groups.find(g => g.id===id);
@@ -846,32 +917,30 @@ function handleGroupNameKey(e, id) {
   }
 }
 
-function saveGroupName(id) {
+window.saveGroupName = function(id) {
   const input = document.getElementById('gname-'+id);
   const name = input.value.trim();
   if (!name) { input.value = state.groups.find(g => g.id===id)?.name||''; return; }
   const g = state.groups.find(g => g.id===id);
-  if (g) { g.name=name; save(); render(); updateGroupSelect(); }
+  if (g) { g.name=name; saveToFirebase(); render(); updateGroupSelect(); }
   document.getElementById('gsave-'+id).classList.remove('visible');
   input.style.background='rgba(107,143,113,0.15)';
   setTimeout(() => { input.style.background=''; }, 600);
 }
 
-function deleteGroupFromModal(id) {
+window.deleteGroupFromModal = function(id) {
   const g = state.groups.find(g => g.id===id);
   const count = state.tasks.filter(t => t.groupId===id).length;
   const sub = count>0 ? `${count} Aufgabe(n) werden ohne Gruppe fortgeführt.` : 'Die Gruppe ist leer.';
   showConfirm(`Gruppe "${g?.name}" löschen?`, sub, () => {
     state.groups = state.groups.filter(g => g.id!==id);
     state.tasks.forEach(t => { if(t.groupId===id) t.groupId=''; });
-    save(); render(); renderModal(); closeColorPopover();
+    saveToFirebase(); render(); renderModal(); closeColorPopover();
   });
 }
 
 // ─── COLOR POPOVER ────────────────────────────────────────────────────────────
-let _colorPopover = null;
-
-function openColorPopover(groupId, dotEl) {
+window.openColorPopover = function(groupId, dotEl) {
   closeColorPopover();
   const popover = document.createElement('div');
   popover.className = 'color-popover';
@@ -883,7 +952,7 @@ function openColorPopover(groupId, dotEl) {
     if (g && g.color===c) s.classList.add('selected');
     s.onclick = e => {
       e.stopPropagation();
-      if (g) { g.color=c; save(); render(); renderModal(); }
+      if (g) { g.color=c; saveToFirebase(); render(); renderModal(); }
       closeColorPopover();
     };
     popover.appendChild(s);
@@ -896,7 +965,7 @@ function openColorPopover(groupId, dotEl) {
   setTimeout(() => document.addEventListener('click', closeColorPopover, {once:true}), 10);
 }
 
-function closeColorPopover() { if(_colorPopover){_colorPopover.remove();_colorPopover=null;} }
+window.closeColorPopover = function() { if(_colorPopover){_colorPopover.remove();_colorPopover=null;} }
 
 // ─── CUSTOM CONFIRM ───────────────────────────────────────────────────────────
 function showConfirm(title, message, onConfirm) {
@@ -938,7 +1007,8 @@ function formatDeadline(d, status) {
 function formatDate(d) { if(!d) return ''; const [y,m,day]=d.split('-'); return `${day}.${m}.${y}`; }
 function todayStr() { return new Date().toISOString().split('T')[0]; }
 function uid() { return Math.random().toString(36).slice(2)+Date.now().toString(36); }
-function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
 </script>
 </body>
 </html>
