@@ -479,75 +479,79 @@
   <div id="notif-msg"></div>
 </div>
 
-<!-- Firebase SDK -->
+<!-- API Client -->
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { getFirestore, doc, setDoc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-
-// ─── FIREBASE CONFIG ──────────────────────────────────────────────────────────
-const firebaseConfig = {
-  apiKey: "AIzaSyBxexxYFgJkmSFYHq5Jomul7H6ozUYZND0",
-  authDomain: "meine-aufgaben-df2d4.firebaseapp.com",
-  projectId: "meine-aufgaben-df2d4",
-  storageBucket: "meine-aufgaben-df2d4.firebasestorage.app",
-  messagingSenderId: "6644574915",
-  appId: "1:6644574915:web:fe001fe5ed617c5be51076",
-  measurementId: "G-60RN6J9000"
-};
-
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
 
 // ─── STATE ────────────────────────────────────────────────────────────────────
 const GROUP_COLORS = ['#c8a84b','#b85c38','#6b8f71','#5b7fa6','#9b6ea8','#d4845a','#4a8fa8','#a86e5b'];
 let selectedColor = GROUP_COLORS[0];
 let currentUser = null;
+let token = localStorage.getItem('token');
 let state = { groups: [], tasks: [] };
 let _authMode = 'login';
 let _editingTaskId = null;
 let _colorPopover = null;
-let _unsubscribe = null;
 
-// ─── FIREBASE SAVE/LOAD ───────────────────────────────────────────────────────
-async function saveToFirebase() {
+// ─── API FUNCTIONS ───────────────────────────────────────────────────────────
+async function apiCall(endpoint, options = {}) {
+  const url = `http://localhost:3000${endpoint}`;
+  const config = {
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers
+    },
+    ...options
+  };
+  if (token) config.headers.Authorization = `Bearer ${token}`;
+  const response = await fetch(url, config);
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error || 'API Fehler');
+  }
+  return response.json();
+}
+
+async function saveToAPI() {
   if (!currentUser) return;
   try {
-    await setDoc(doc(db, 'users', currentUser.uid), state);
+    await apiCall('/data', {
+      method: 'POST',
+      body: JSON.stringify(state)
+    });
   } catch(e) {
     console.error('Speicherfehler:', e);
   }
 }
 
-function subscribeToData(uid) {
-  if (_unsubscribe) _unsubscribe();
-  _unsubscribe = onSnapshot(doc(db, 'users', uid), (snap) => {
-    if (snap.exists()) {
-      state = snap.data();
-      if (!state.groups) state.groups = [];
-      if (!state.tasks) state.tasks = [];
-    } else {
-      state = { groups: [], tasks: [] };
-    }
+async function loadFromAPI() {
+  if (!currentUser) return;
+  try {
+    const data = await apiCall('/data');
+    state = data;
     render();
-    checkNotifications();
-  });
+  } catch(e) {
+    console.error('Ladefehler:', e);
+  }
 }
 
 // ─── AUTH STATE ───────────────────────────────────────────────────────────────
-onAuthStateChanged(auth, (user) => {
+function initApp() {
   document.getElementById('loading-screen').style.display = 'none';
-  if (user) {
-    currentUser = user;
-    showAppScreen(user);
-    subscribeToData(user.uid);
+  if (token) {
+    // Token validieren
+    apiCall('/protected').then(data => {
+      currentUser = data.user;
+      showAppScreen(data.user);
+      loadFromAPI();
+    }).catch(() => {
+      localStorage.removeItem('token');
+      token = null;
+      showLoginScreen('login');
+    });
   } else {
-    currentUser = null;
-    if (_unsubscribe) { _unsubscribe(); _unsubscribe = null; }
     showLoginScreen('login');
   }
-});
+}
 
 function showLoginScreen(mode) {
   document.getElementById('login-screen').style.display = 'flex';
@@ -619,34 +623,43 @@ window.submitAuth = async function() {
 
   try {
     if (_authMode === 'login') {
-      await signInWithEmailAndPassword(auth, email, password);
+      const data = await apiCall('/login', {
+        method: 'POST',
+        body: JSON.stringify({ email, password })
+      });
+      token = data.token;
+      localStorage.setItem('token', token);
+      currentUser = data.user;
+      showAppScreen(data.user);
+      loadFromAPI();
     } else {
       const pw2 = document.getElementById('auth-password2').value;
       if (password !== pw2) { setLoginError('Passwörter stimmen nicht überein.'); btn.disabled=false; btn.textContent='Konto erstellen'; return; }
       if (password.length < 6) { setLoginError('Passwort muss mind. 6 Zeichen lang sein.'); btn.disabled=false; btn.textContent='Konto erstellen'; return; }
-      await createUserWithEmailAndPassword(auth, email, password);
+      const data = await apiCall('/register', {
+        method: 'POST',
+        body: JSON.stringify({ email, password })
+      });
+      setLoginError('Registrierung erfolgreich. Überprüfe deine E-Mail zur Bestätigung.');
+      btn.disabled = false;
+      btn.textContent = 'Konto erstellen';
     }
   } catch(e) {
     btn.disabled = false;
     btn.textContent = _authMode === 'login' ? 'Anmelden' : 'Konto erstellen';
-    const msgs = {
-      'auth/user-not-found': 'Benutzer nicht gefunden.',
-      'auth/wrong-password': 'Falsches Passwort.',
-      'auth/email-already-in-use': 'E-Mail bereits vergeben.',
-      'auth/invalid-email': 'Ungültige E-Mail-Adresse.',
-      'auth/invalid-credential': 'E-Mail oder Passwort falsch.',
-      'auth/too-many-requests': 'Zu viele Versuche. Bitte warte kurz.',
-    };
-    setLoginError(msgs[e.code] || 'Fehler: ' + e.message);
+    setLoginError(e.message);
   }
 }
 
 window.logout = async function() {
-  await signOut(auth);
+  token = null;
+  localStorage.removeItem('token');
+  currentUser = null;
   state = { groups: [], tasks: [] };
   document.getElementById('auth-email').value = '';
   document.getElementById('auth-password').value = '';
   document.getElementById('auth-password2').value = '';
+  showLoginScreen('login');
 }
 
 // ─── KEYBOARD SHORTCUTS ───────────────────────────────────────────────────────
@@ -662,7 +675,7 @@ window.createGroup = function() {
   const name = document.getElementById('group-name-input').value.trim();
   if (!name) return;
   state.groups.push({ id: uid(), name, color: selectedColor });
-  saveToFirebase();
+  saveToAPI();
   updateGroupSelect();
   render();
   document.getElementById('group-name-input').value = '';
@@ -675,7 +688,7 @@ window.deleteGroup = function(id) {
   showConfirm(`Gruppe "${g?.name}" löschen?`, sub, () => {
     state.groups = state.groups.filter(g => g.id!==id);
     state.tasks.forEach(t => { if(t.groupId===id) t.groupId=''; });
-    saveToFirebase(); render();
+    saveToAPI(); render();
   });
 }
 
@@ -700,7 +713,7 @@ window.addTask = function() {
     deadline: document.getElementById('deadline-input').value || '',
     done: false, doneAt: null, createdAt: Date.now()
   });
-  saveToFirebase();
+  saveToAPI();
   document.getElementById('task-input').value = '';
   document.getElementById('deadline-input').value = '';
   render();
@@ -710,12 +723,12 @@ window.toggleDone = function(id) {
   const t = state.tasks.find(t => t.id===id);
   if (!t) return;
   t.done = !t.done; t.doneAt = t.done ? Date.now() : null;
-  saveToFirebase(); render();
+  saveToAPI(); render();
 }
 
 window.deleteTask = function(id) {
   state.tasks = state.tasks.filter(t => t.id!==id);
-  saveToFirebase(); render();
+  saveToAPI(); render();
 }
 
 // ─── RENDER ───────────────────────────────────────────────────────────────────
@@ -874,7 +887,7 @@ window.saveEditTask = function() {
   t.text = text;
   t.deadline = document.getElementById('edit-deadline').value || '';
   t.groupId = document.getElementById('edit-group').value;
-  saveToFirebase(); render(); closeEditTask();
+  saveToAPI(); render(); closeEditTask();
 }
 
 // ─── GROUP MODAL ──────────────────────────────────────────────────────────────
@@ -922,7 +935,7 @@ window.saveGroupName = function(id) {
   const name = input.value.trim();
   if (!name) { input.value = state.groups.find(g => g.id===id)?.name||''; return; }
   const g = state.groups.find(g => g.id===id);
-  if (g) { g.name=name; saveToFirebase(); render(); updateGroupSelect(); }
+  if (g) { g.name=name; saveToAPI(); render(); updateGroupSelect(); }
   document.getElementById('gsave-'+id).classList.remove('visible');
   input.style.background='rgba(107,143,113,0.15)';
   setTimeout(() => { input.style.background=''; }, 600);
@@ -935,7 +948,7 @@ window.deleteGroupFromModal = function(id) {
   showConfirm(`Gruppe "${g?.name}" löschen?`, sub, () => {
     state.groups = state.groups.filter(g => g.id!==id);
     state.tasks.forEach(t => { if(t.groupId===id) t.groupId=''; });
-    saveToFirebase(); render(); renderModal(); closeColorPopover();
+    saveToAPI(); render(); renderModal(); closeColorPopover();
   });
 }
 
@@ -952,7 +965,7 @@ window.openColorPopover = function(groupId, dotEl) {
     if (g && g.color===c) s.classList.add('selected');
     s.onclick = e => {
       e.stopPropagation();
-      if (g) { g.color=c; saveToFirebase(); render(); renderModal(); }
+      if (g) { g.color=c; saveToAPI(); render(); renderModal(); }
       closeColorPopover();
     };
     popover.appendChild(s);
@@ -1008,6 +1021,8 @@ function formatDate(d) { if(!d) return ''; const [y,m,day]=d.split('-'); return 
 function todayStr() { return new Date().toISOString().split('T')[0]; }
 function uid() { return Math.random().toString(36).slice(2)+Date.now().toString(36); }
 function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+initApp();
 
 </script>
 </body>
