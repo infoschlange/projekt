@@ -479,78 +479,76 @@
   <div id="notif-msg"></div>
 </div>
 
-<!-- API Client -->
+<!-- Firebase SDK + App Logic -->
 <script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getFirestore, doc, setDoc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+// ─── FIREBASE CONFIG ──────────────────────────────────────────────────────────
+const firebaseConfig = {
+  apiKey: "AIzaSyBxexxYFgJkmSFYHq5Jomul7H6ozUYZND0",
+  authDomain: "meine-aufgaben-df2d4.firebaseapp.com",
+  projectId: "meine-aufgaben-df2d4",
+  storageBucket: "meine-aufgaben-df2d4.firebasestorage.app",
+  messagingSenderId: "6644574915",
+  appId: "1:6644574915:web:fe001fe5ed617c5be51076",
+  measurementId: "G-60RN6J9000"
+};
+
+const firebaseApp = initializeApp(firebaseConfig);
+const auth = getAuth(firebaseApp);
+const db = getFirestore(firebaseApp);
 
 // ─── STATE ────────────────────────────────────────────────────────────────────
 const GROUP_COLORS = ['#c8a84b','#b85c38','#6b8f71','#5b7fa6','#9b6ea8','#d4845a','#4a8fa8','#a86e5b'];
 let selectedColor = GROUP_COLORS[0];
 let currentUser = null;
-let token = localStorage.getItem('token');
 let state = { groups: [], tasks: [] };
 let _authMode = 'login';
 let _editingTaskId = null;
 let _colorPopover = null;
+let _unsubscribe = null;
 
-// ─── API FUNCTIONS ───────────────────────────────────────────────────────────
-async function apiCall(endpoint, options = {}) {
-  const url = `http://localhost:3000${endpoint}`;
-  const config = {
-    headers: {
-      'Content-Type': 'application/json',
-      ...options.headers
-    },
-    ...options
-  };
-  if (token) config.headers.Authorization = `Bearer ${token}`;
-  const response = await fetch(url, config);
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.error || 'API Fehler');
-  }
-  return response.json();
-}
-
+// ─── FIREBASE SAVE/LOAD ───────────────────────────────────────────────────────
 async function saveToAPI() {
   if (!currentUser) return;
   try {
-    await apiCall('/data', {
-      method: 'POST',
-      body: JSON.stringify(state)
-    });
-  } catch(e) {
-    console.error('Speicherfehler:', e);
-  }
+    await setDoc(doc(db, 'users', currentUser.uid), { state: JSON.stringify(state) });
+  } catch(e) { console.error('Speichern fehlgeschlagen:', e); }
 }
 
 async function loadFromAPI() {
   if (!currentUser) return;
   try {
-    const data = await apiCall('/data');
-    state = data;
-    render();
+    const snap = await getDoc(doc(db, 'users', currentUser.uid));
+    if (snap.exists() && snap.data().state) {
+      state = JSON.parse(snap.data().state);
+    } else {
+      state = { groups: [], tasks: [] };
+    }
   } catch(e) {
-    console.error('Ladefehler:', e);
+    console.error('Laden fehlgeschlagen:', e);
+    state = { groups: [], tasks: [] };
   }
+  render();
+  checkNotifications();
 }
 
 // ─── AUTH STATE ───────────────────────────────────────────────────────────────
 function initApp() {
-  document.getElementById('loading-screen').style.display = 'none';
-  if (token) {
-    // Token validieren
-    apiCall('/protected').then(data => {
-      currentUser = data.user;
-      showAppScreen(data.user);
+  onAuthStateChanged(auth, user => {
+    document.getElementById('loading-screen').style.display = 'none';
+    if (user) {
+      currentUser = user;
+      showAppScreen(user);
       loadFromAPI();
-    }).catch(() => {
-      localStorage.removeItem('token');
-      token = null;
+    } else {
+      currentUser = null;
+      state = { groups: [], tasks: [] };
       showLoginScreen('login');
-    });
-  } else {
-    showLoginScreen('login');
-  }
+    }
+  });
 }
 
 function showLoginScreen(mode) {
@@ -563,14 +561,12 @@ function showLoginScreen(mode) {
 function showAppScreen(user) {
   document.getElementById('login-screen').style.display = 'none';
   document.getElementById('app-screen').style.display = 'block';
-  // Zeige E-Mail ohne Domain als Name
   const displayName = user.email.split('@')[0];
   document.getElementById('user-display').textContent = displayName;
   const now = new Date();
   document.getElementById('today-display').innerHTML =
     now.toLocaleDateString('de-AT', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
 
-  // Farbauswahl aufbauen
   const cp = document.getElementById('color-picker');
   cp.innerHTML = '';
   GROUP_COLORS.forEach(c => {
@@ -623,43 +619,35 @@ window.submitAuth = async function() {
 
   try {
     if (_authMode === 'login') {
-      const data = await apiCall('/login', {
-        method: 'POST',
-        body: JSON.stringify({ email, password })
-      });
-      token = data.token;
-      localStorage.setItem('token', token);
-      currentUser = data.user;
-      showAppScreen(data.user);
-      loadFromAPI();
+      await signInWithEmailAndPassword(auth, email, password);
     } else {
       const pw2 = document.getElementById('auth-password2').value;
       if (password !== pw2) { setLoginError('Passwörter stimmen nicht überein.'); btn.disabled=false; btn.textContent='Konto erstellen'; return; }
       if (password.length < 6) { setLoginError('Passwort muss mind. 6 Zeichen lang sein.'); btn.disabled=false; btn.textContent='Konto erstellen'; return; }
-      const data = await apiCall('/register', {
-        method: 'POST',
-        body: JSON.stringify({ email, password })
-      });
-      setLoginError('Registrierung erfolgreich. Überprüfe deine E-Mail zur Bestätigung.');
-      btn.disabled = false;
-      btn.textContent = 'Konto erstellen';
+      await createUserWithEmailAndPassword(auth, email, password);
     }
+    // onAuthStateChanged übernimmt den Rest
   } catch(e) {
     btn.disabled = false;
     btn.textContent = _authMode === 'login' ? 'Anmelden' : 'Konto erstellen';
-    setLoginError(e.message);
+    const msgs = {
+      'auth/user-not-found': 'Kein Konto mit dieser E-Mail gefunden.',
+      'auth/wrong-password': 'Falsches Passwort.',
+      'auth/email-already-in-use': 'Diese E-Mail ist bereits registriert.',
+      'auth/invalid-email': 'Ungültige E-Mail-Adresse.',
+      'auth/too-many-requests': 'Zu viele Versuche. Bitte warte kurz.',
+      'auth/invalid-credential': 'E-Mail oder Passwort falsch.'
+    };
+    setLoginError(msgs[e.code] || e.message);
   }
 }
 
 window.logout = async function() {
-  token = null;
-  localStorage.removeItem('token');
-  currentUser = null;
+  await signOut(auth);
   state = { groups: [], tasks: [] };
   document.getElementById('auth-email').value = '';
   document.getElementById('auth-password').value = '';
   document.getElementById('auth-password2').value = '';
-  showLoginScreen('login');
 }
 
 // ─── KEYBOARD SHORTCUTS ───────────────────────────────────────────────────────
@@ -1043,7 +1031,6 @@ function uid() { return Math.random().toString(36).slice(2)+Date.now().toString(
 function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
 initApp();
-
 </script>
 </body>
 </html>
