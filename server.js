@@ -51,7 +51,7 @@ const db = new sqlite3.Database('./users.db', (err) => {
 
 // E-Mail-Transporter
 const transporter = nodemailer.createTransporter({
-  service: 'gmail', // Oder dein E-Mail-Service
+  service: 'gmail',
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS
@@ -78,7 +78,6 @@ app.post('/register', async (req, res) => {
           return res.status(500).json({ error: 'Datenbankfehler' });
         }
 
-        // E-Mail senden
         const mailOptions = {
           from: process.env.EMAIL_USER,
           to: email,
@@ -154,7 +153,7 @@ const authenticate = (req, res, next) => {
   });
 };
 
-// Geschützte Route (Beispiel)
+// Geschützte Route
 app.get('/protected', authenticate, (req, res) => {
   res.json({ message: 'Willkommen!', user: req.user });
 });
@@ -175,14 +174,12 @@ app.post('/data', authenticate, (req, res) => {
   const userId = req.user.id;
   const { groups, tasks } = req.body;
 
-  // Gruppen speichern
   db.run(`DELETE FROM groups WHERE user_id = ?`, [userId], () => {
     groups.forEach(g => {
       db.run(`INSERT INTO groups (id, user_id, name, color) VALUES (?, ?, ?, ?)`, [g.id, userId, g.name, g.color]);
     });
   });
 
-  // Aufgaben speichern
   db.run(`DELETE FROM tasks WHERE user_id = ?`, [userId], () => {
     tasks.forEach(t => {
       db.run(`INSERT INTO tasks (id, user_id, text, group_id, deadline, done, done_at, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
@@ -194,5 +191,4 @@ app.post('/data', authenticate, (req, res) => {
 
 app.listen(PORT, () => {
   console.log(`Server läuft auf http://localhost:${PORT}`);
-});</content>
-<parameter name="filePath">c:\Users\hgued\projekt\server.js
+});

@@ -1,7 +1,7 @@
 {
   "name": "aufgaben-manager",
   "version": "1.0.0",
-  "description": "Persönlicher Aufgaben-Manager mit E-Mail-Bestätigung",
+  "description": "Personlicher Aufgaben-Manager mit E-Mail-Bestatigung",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
@@ -19,5 +19,4 @@
   "devDependencies": {
     "nodemon": "^3.0.2"
   }
-}</content>
-<parameter name="filePath">c:\Users\hgued\projekt\package.json
+}
