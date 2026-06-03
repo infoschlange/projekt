@@ -562,6 +562,7 @@ function addTask() {
   if(!text) return;
   state.tasks.push({id:uid(),text,deadline,groupId,done:false,createdAt:new Date().toISOString(),emailNotifSent:false});
   saveToAPI(); render(); renderCalendar();
+  checkDeadlineEmails();
   document.getElementById('task-input').value=''; document.getElementById('deadline-input').value='';
 }
 function toggleTask(id) {
@@ -585,9 +586,12 @@ function saveEditTask() {
   if(!_editingTaskId) return;
   const t=state.tasks.find(t=>t.id===_editingTaskId); if(!t) return;
   t.text=document.getElementById('edit-text').value.trim()||t.text;
-  t.deadline=document.getElementById('edit-deadline').value;
+  const newDeadline=document.getElementById('edit-deadline').value;
+  if(newDeadline!==t.deadline){ t.deadline=newDeadline; t.emailNotifSent=false; } // Deadline geändert → Email-Flag zurücksetzen
   t.groupId=document.getElementById('edit-group').value;
-  saveToAPI(); render(); renderCalendar(); closeEditTask();
+  saveToAPI(); render(); renderCalendar();
+  checkDeadlineEmails();
+  closeEditTask();
 }
 
 // ── GROUPS ────────────────────────────────────────────────────────────────────
