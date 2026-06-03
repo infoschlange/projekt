@@ -3,212 +3,203 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Aufgaben</title>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<title>Meine Aufgaben</title>
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --ink: #1a1a18; --paper: #f5f0e8; --cream: #ede8dc;
-    --gold: #c8a84b; --gold-light: #e8d08a;
-    --rust: #b85c38; --sage: #6b8f71; --muted: #8a8578; --border: #d4cebe;
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'DM Mono', monospace; background: var(--paper); color: var(--ink); min-height: 100vh; background-image: repeating-linear-gradient(0deg, transparent, transparent 27px, rgba(200,168,75,0.08) 27px, rgba(200,168,75,0.08) 28px); }
+:root {
+  --ink: #1a1a18; --paper: #f5f0e8; --cream: #ede8dc;
+  --gold: #c8a84b; --gold-light: #e8d08a;
+  --rust: #b85c38; --sage: #6b8f71; --muted: #8a8578; --border: #d4cebe;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'DM Mono', monospace; background: var(--paper); color: var(--ink); min-height: 100vh; background-image: repeating-linear-gradient(0deg, transparent, transparent 27px, rgba(200,168,75,0.08) 27px, rgba(200,168,75,0.08) 28px); }
+#loading-screen { min-height:100vh; display:flex; align-items:center; justify-content:center; flex-direction:column; gap:1rem; }
+.loading-spinner { width:32px; height:32px; border:3px solid var(--border); border-top-color:var(--gold); border-radius:50%; animation:spin 0.8s linear infinite; }
+@keyframes spin { to { transform:rotate(360deg); } }
+.loading-text { font-size:0.75rem; letter-spacing:0.1em; color:var(--muted); text-transform:uppercase; }
+#login-screen { min-height:100vh; display:none; align-items:center; justify-content:center; padding:1.5rem; }
+.login-card { background:white; border:1px solid var(--border); border-radius:3px; box-shadow:8px 8px 0 var(--border); width:100%; max-width:400px; overflow:hidden; }
+.login-top { background:var(--ink); padding:2rem 2rem 1.5rem; text-align:center; }
+.login-top h1 { font-family:'Playfair Display',serif; font-size:2rem; font-weight:700; color:var(--paper); line-height:1.1; }
+.login-top h1 span { color:var(--gold); }
+.login-top p { font-size:0.7rem; letter-spacing:0.12em; text-transform:uppercase; color:var(--muted); margin-top:0.4rem; }
+.login-tabs { display:flex; border-bottom:1px solid var(--border); background:var(--cream); }
+.login-tab { flex:1; font-family:'DM Mono',monospace; font-size:0.7rem; letter-spacing:0.1em; text-transform:uppercase; padding:0.75rem; border:none; background:transparent; cursor:pointer; color:var(--muted); border-bottom:2px solid transparent; transition:all 0.15s; }
+.login-tab.active { color:var(--ink); border-bottom-color:var(--gold); background:white; }
+.login-form-body { padding:1.5rem 2rem 2rem; }
+.login-field { margin-bottom:1rem; }
+.login-field label { display:block; font-size:0.62rem; letter-spacing:0.12em; text-transform:uppercase; color:var(--muted); margin-bottom:0.35rem; }
+.login-field input { font-family:'DM Mono',monospace; font-size:0.85rem; width:100%; background:var(--paper); border:1px solid var(--border); border-radius:2px; padding:0.65rem 0.9rem; color:var(--ink); outline:none; transition:border-color 0.2s; }
+.login-field input:focus { border-color:var(--gold); }
+.login-error { font-size:0.75rem; color:var(--rust); background:rgba(184,92,56,0.08); border:1px solid rgba(184,92,56,0.2); border-radius:2px; padding:0.5rem 0.8rem; margin-bottom:1rem; display:none; line-height:1.5; }
+.login-error.show { display:block; }
+.login-success { font-size:0.75rem; color:var(--sage); background:rgba(107,143,113,0.08); border:1px solid rgba(107,143,113,0.3); border-radius:2px; padding:0.5rem 0.8rem; margin-bottom:1rem; display:none; line-height:1.5; }
+.login-success.show { display:block; }
+.btn-login { font-family:'DM Mono',monospace; font-size:0.75rem; letter-spacing:0.1em; text-transform:uppercase; background:var(--ink); color:var(--paper); border:none; border-radius:2px; padding:0.75rem; width:100%; cursor:pointer; transition:all 0.15s; margin-top:0.25rem; }
+.btn-login:hover { background:var(--gold); color:var(--ink); }
+.btn-login:disabled { opacity:0.6; cursor:not-allowed; }
+.login-hint { font-size:0.68rem; color:var(--muted); text-align:center; margin-top:1rem; line-height:1.5; }
+.resend-link { font-size:0.68rem; color:var(--gold); cursor:pointer; text-decoration:underline; text-underline-offset:2px; margin-top:0.5rem; display:none; text-align:center; }
+.resend-link.show { display:block; }
+#app-screen { display:none; padding:2rem 1rem 4rem; }
+.container { max-width:800px; margin:0 auto; }
+header { margin-bottom:2.5rem; padding-bottom:1.2rem; border-bottom:2px solid var(--gold); display:flex; align-items:flex-end; justify-content:space-between; flex-wrap:wrap; gap:1rem; }
+header h1 { font-family:'Playfair Display',serif; font-size:clamp(2rem,5vw,3.2rem); font-weight:700; letter-spacing:-0.02em; line-height:1; }
+header h1 span { color:var(--gold); }
+.header-right { display:flex; flex-direction:column; align-items:flex-end; gap:0.5rem; }
+.header-meta { font-size:0.7rem; color:var(--muted); letter-spacing:0.1em; text-transform:uppercase; }
+.user-bar { display:flex; align-items:center; gap:0.6rem; }
+.user-badge { font-size:0.65rem; letter-spacing:0.08em; color:var(--muted); background:var(--cream); border:1px solid var(--border); border-radius:99px; padding:0.25rem 0.7rem; }
+.user-badge strong { color:var(--ink); }
+.btn-logout { font-family:'DM Mono',monospace; font-size:0.65rem; letter-spacing:0.08em; text-transform:uppercase; background:transparent; color:var(--muted); border:1px solid var(--border); border-radius:2px; padding:0.25rem 0.6rem; cursor:pointer; transition:all 0.15s; }
+.btn-logout:hover { border-color:var(--rust); color:var(--rust); }
+.stats { display:flex; gap:1.5rem; margin-bottom:2rem; flex-wrap:wrap; }
+.stat { display:flex; flex-direction:column; gap:0.2rem; }
+.stat-num { font-family:'Playfair Display',serif; font-size:1.8rem; font-weight:700; line-height:1; }
+.stat-label { font-size:0.6rem; letter-spacing:0.12em; text-transform:uppercase; color:var(--muted); }
+.stat-num.gold { color:var(--gold); } .stat-num.rust { color:var(--rust); } .stat-num.sage { color:var(--sage); }
+.add-form { background:white; border:1px solid var(--border); border-radius:2px; padding:1.5rem; margin-bottom:2rem; box-shadow:4px 4px 0 var(--border); }
+.form-title { font-size:0.65rem; letter-spacing:0.15em; text-transform:uppercase; color:var(--muted); margin-bottom:1rem; }
+.form-row { display:flex; gap:0.75rem; margin-bottom:0.75rem; flex-wrap:wrap; }
+.form-row input, .form-row select { font-family:'DM Mono',monospace; font-size:0.85rem; background:var(--paper); border:1px solid var(--border); border-radius:2px; padding:0.6rem 0.8rem; color:var(--ink); outline:none; transition:border-color 0.2s; }
+.form-row input:focus, .form-row select:focus { border-color:var(--gold); }
+.form-row input[type="text"] { flex:1; min-width:200px; }
+.form-row input[type="datetime-local"] { min-width:215px; }
+.form-row select { min-width:140px; }
+.form-group-new { display:flex; gap:0.5rem; align-items:center; margin-bottom:0.75rem; }
+.form-group-new input { font-family:'DM Mono',monospace; font-size:0.85rem; background:var(--paper); border:1px solid var(--border); border-radius:2px; padding:0.5rem 0.8rem; color:var(--ink); outline:none; flex:1; }
+.btn { font-family:'DM Mono',monospace; font-size:0.75rem; letter-spacing:0.08em; text-transform:uppercase; border:none; cursor:pointer; border-radius:2px; transition:all 0.15s; white-space:nowrap; }
+.btn-primary { background:var(--ink); color:var(--paper); padding:0.65rem 1.2rem; }
+.btn-primary:hover { background:var(--gold); color:var(--ink); }
+.btn-ghost { background:transparent; color:var(--muted); padding:0.5rem 0.8rem; border:1px solid var(--border); font-size:0.7rem; }
+.btn-ghost:hover { border-color:var(--gold); color:var(--gold); }
+.btn-danger { background:transparent; color:var(--rust); border:none; padding:0.3rem 0.4rem; font-size:0.7rem; opacity:0.6; cursor:pointer; }
+.btn-danger:hover { opacity:1; }
+.filter-bar { display:flex; align-items:center; gap:1rem; margin-bottom:1.5rem; flex-wrap:wrap; }
+.toggle-label { font-size:0.7rem; letter-spacing:0.08em; color:var(--muted); display:flex; align-items:center; gap:0.4rem; cursor:pointer; user-select:none; }
+.toggle-label input { cursor:pointer; accent-color:var(--gold); }
+.manage-groups-btn { display:inline-flex; align-items:center; gap:0.4rem; font-family:'DM Mono',monospace; font-size:0.7rem; letter-spacing:0.1em; text-transform:uppercase; background:transparent; color:var(--muted); border:1px solid var(--border); border-radius:2px; padding:0.45rem 0.9rem; cursor:pointer; transition:all 0.15s; }
+.manage-groups-btn:hover { border-color:var(--gold); color:var(--gold); }
+.groups-container { display:flex; flex-direction:column; gap:1.5rem; }
+.group { border:1px solid var(--border); border-radius:2px; background:white; overflow:hidden; box-shadow:3px 3px 0 var(--cream); animation:slideIn 0.25s ease; }
+@keyframes slideIn { from{opacity:0;transform:translateY(-8px)} to{opacity:1;transform:translateY(0)} }
+@keyframes fadeIn  { from{opacity:0} to{opacity:1} }
+.group-header { display:flex; align-items:center; gap:0.75rem; padding:0.9rem 1.2rem; background:var(--cream); border-bottom:1px solid var(--border); cursor:pointer; user-select:none; }
+.group-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
+.group-name-lbl { font-family:'Playfair Display',serif; font-size:1rem; font-weight:700; flex:1; }
+.group-count { font-size:0.65rem; color:var(--muted); letter-spacing:0.1em; padding:0.2rem 0.5rem; background:white; border-radius:99px; border:1px solid var(--border); }
+.group-toggle { font-size:0.7rem; color:var(--muted); transition:transform 0.2s; }
+.group-toggle.collapsed { transform:rotate(-90deg); }
+.group-body { padding:0; }
+.group-body.hidden { display:none; }
+.task { display:flex; align-items:flex-start; gap:0.8rem; padding:0.85rem 1.2rem; border-bottom:1px solid var(--cream); transition:background 0.15s; animation:fadeIn 0.2s ease; }
+.task:last-child { border-bottom:none; }
+.task:hover { background:var(--paper); }
+.task.done { opacity:0.5; }
+.task-check { width:18px; height:18px; border:1.5px solid var(--border); border-radius:2px; flex-shrink:0; margin-top:2px; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all 0.15s; background:white; }
+.task-check:hover { border-color:var(--gold); }
+.task-check.checked { background:var(--sage); border-color:var(--sage); }
+.task-check.checked::after { content:'✓'; font-size:11px; color:white; font-weight:bold; }
+.task-body { flex:1; min-width:0; }
+.task-text { font-size:0.875rem; line-height:1.5; word-break:break-word; }
+.task.done .task-text { text-decoration:line-through; color:var(--muted); }
+.task-meta { display:flex; align-items:center; gap:0.5rem; margin-top:0.3rem; flex-wrap:wrap; }
+.deadline-badge { font-size:0.65rem; letter-spacing:0.05em; padding:0.15rem 0.5rem; border-radius:99px; border:1px solid; }
+.deadline-badge.ok      { color:var(--sage); border-color:var(--sage); background:rgba(107,143,113,0.08); }
+.deadline-badge.soon    { color:var(--gold); border-color:var(--gold); background:rgba(200,168,75,0.1); }
+.deadline-badge.overdue { color:var(--rust); border-color:var(--rust); background:rgba(184,92,56,0.1); }
+.deadline-badge.alert   { color:var(--rust); border-color:var(--rust); background:rgba(184,92,56,0.15); animation:pulse 1.5s infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
+.notif-sent-badge { font-size:0.6rem; color:var(--muted); border:1px solid var(--border); padding:0.1rem 0.45rem; border-radius:99px; }
+.task-actions { display:flex; gap:0.2rem; flex-shrink:0; opacity:0; transition:opacity 0.15s; }
+.task:hover .task-actions { opacity:1; }
+.btn-edit { background:transparent; color:var(--gold); border:none; padding:0.3rem 0.45rem; font-size:0.85rem; opacity:0.7; cursor:pointer; transition:opacity 0.15s; font-family:inherit; }
+.btn-edit:hover { opacity:1; }
+.ungrouped { border:1px dashed var(--border); border-radius:2px; background:white; overflow:hidden; }
+.ungrouped-header { padding:0.7rem 1.2rem; font-size:0.65rem; letter-spacing:0.15em; text-transform:uppercase; color:var(--muted); background:var(--paper); border-bottom:1px dashed var(--border); }
+.empty { text-align:center; padding:3rem 1rem; color:var(--muted); font-size:0.8rem; letter-spacing:0.08em; }
+.empty-icon { font-size:2.5rem; margin-bottom:0.75rem; opacity:0.4; }
+.color-picker { display:flex; gap:0.4rem; align-items:center; }
+.swatch { width:16px; height:16px; border-radius:50%; cursor:pointer; border:2px solid transparent; transition:transform 0.15s; }
+.swatch:hover,.swatch.selected { transform:scale(1.3); border-color:var(--ink); }
+.color-popover { position:fixed; background:white; border:1px solid var(--border); border-radius:3px; box-shadow:3px 3px 0 var(--border); padding:0.6rem; display:flex; gap:0.4rem; flex-wrap:wrap; width:140px; z-index:900; animation:fadeIn 0.15s ease; }
+.color-popover .swatch { width:18px; height:18px; }
 
-  #loading-screen { min-height: 100vh; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 1rem; }
-  .loading-spinner { width: 32px; height: 32px; border: 3px solid var(--border); border-top-color: var(--gold); border-radius: 50%; animation: spin 0.8s linear infinite; }
-  @keyframes spin { to { transform: rotate(360deg); } }
-  .loading-text { font-size: 0.75rem; letter-spacing: 0.1em; color: var(--muted); text-transform: uppercase; }
+/* CALENDAR */
+.cal-section { margin-bottom:2.5rem; }
+.section-heading { font-size:0.65rem; letter-spacing:0.15em; text-transform:uppercase; color:var(--muted); margin-bottom:1rem; display:flex; align-items:center; gap:0.75rem; }
+.section-heading::after { content:''; flex:1; height:1px; background:var(--border); }
+.calendar-wrap { background:white; border:1px solid var(--border); border-radius:2px; box-shadow:4px 4px 0 var(--border); overflow:hidden; }
+.cal-header { display:flex; align-items:center; justify-content:space-between; padding:0.9rem 1.2rem; background:var(--ink); color:var(--paper); }
+.cal-title { font-family:'Playfair Display',serif; font-size:1.1rem; font-weight:700; }
+.cal-nav { background:none; border:1px solid rgba(255,255,255,0.2); border-radius:2px; color:var(--paper); font-family:'DM Mono',monospace; font-size:0.75rem; padding:0.3rem 0.7rem; cursor:pointer; transition:all 0.15s; }
+.cal-nav:hover { background:rgba(255,255,255,0.1); }
+.cal-grid { display:grid; grid-template-columns:repeat(7,1fr); }
+.cal-dow { padding:0.5rem 0; text-align:center; font-size:0.6rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--muted); background:var(--cream); border-bottom:1px solid var(--border); }
+.cal-day { min-height:72px; padding:0.4rem 0.45rem; border-right:1px solid var(--cream); border-bottom:1px solid var(--cream); position:relative; cursor:default; transition:background 0.15s; }
+.cal-day:nth-child(7n) { border-right:none; }
+.cal-day:hover { background:rgba(200,168,75,0.05); }
+.cal-day.other-month { opacity:0.3; }
+.cal-day.today { background:rgba(200,168,75,0.12); }
+.cal-day.today .cal-day-num { color:var(--gold); font-weight:700; }
+.cal-day-num { font-size:0.7rem; color:var(--muted); margin-bottom:0.25rem; }
+.cal-pills { display:flex; flex-direction:column; gap:2px; }
+.cal-pill { font-size:0.58rem; padding:0.1rem 0.3rem; border-radius:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; cursor:pointer; line-height:1.4; border-left:2px solid currentColor; }
+.cal-pill:hover { opacity:0.75; }
+.cal-more { font-size:0.58rem; color:var(--muted); padding:0.1rem 0.3rem; }
+.cal-tooltip { position:fixed; background:var(--ink); color:var(--paper); font-size:0.72rem; padding:0.6rem 0.9rem; border-radius:3px; box-shadow:4px 4px 0 rgba(0,0,0,0.25); z-index:800; pointer-events:none; max-width:220px; line-height:1.6; display:none; border-left:3px solid var(--gold); }
+.cal-tooltip.show { display:block; }
 
-  #login-screen { min-height: 100vh; display: none; align-items: center; justify-content: center; padding: 1.5rem; }
-  .login-card { background: white; border: 1px solid var(--border); border-radius: 3px; box-shadow: 8px 8px 0 var(--border); width: 100%; max-width: 400px; overflow: hidden; }
-  .login-top { background: var(--ink); padding: 2rem 2rem 1.5rem; text-align: center; }
-  .login-top h1 { font-family: 'Playfair Display', serif; font-size: 2rem; font-weight: 700; color: var(--paper); line-height: 1.1; }
-  .login-top h1 span { color: var(--gold); }
-  .login-top p { font-size: 0.7rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin-top: 0.4rem; }
-  .login-tabs { display: flex; border-bottom: 1px solid var(--border); background: var(--cream); }
-  .login-tab { flex: 1; font-family: 'DM Mono', monospace; font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; padding: 0.75rem; border: none; background: transparent; cursor: pointer; color: var(--muted); border-bottom: 2px solid transparent; transition: all 0.15s; }
-  .login-tab.active { color: var(--ink); border-bottom-color: var(--gold); background: white; }
-  .login-form-body { padding: 1.5rem 2rem 2rem; }
-  .login-field { margin-bottom: 1rem; }
-  .login-field label { display: block; font-size: 0.62rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.35rem; }
-  .login-field input { font-family: 'DM Mono', monospace; font-size: 0.85rem; width: 100%; background: var(--paper); border: 1px solid var(--border); border-radius: 2px; padding: 0.65rem 0.9rem; color: var(--ink); outline: none; transition: border-color 0.2s; }
-  .login-field input:focus { border-color: var(--gold); }
-  .login-error { font-size: 0.75rem; color: var(--rust); background: rgba(184,92,56,0.08); border: 1px solid rgba(184,92,56,0.2); border-radius: 2px; padding: 0.5rem 0.8rem; margin-bottom: 1rem; display: none; line-height: 1.5; }
-  .login-error.show { display: block; }
-  .login-success { font-size: 0.75rem; color: var(--sage); background: rgba(107,143,113,0.08); border: 1px solid rgba(107,143,113,0.3); border-radius: 2px; padding: 0.5rem 0.8rem; margin-bottom: 1rem; display: none; line-height: 1.5; }
-  .login-success.show { display: block; }
-  .btn-login { font-family: 'DM Mono', monospace; font-size: 0.75rem; letter-spacing: 0.1em; text-transform: uppercase; background: var(--ink); color: var(--paper); border: none; border-radius: 2px; padding: 0.75rem; width: 100%; cursor: pointer; transition: all 0.15s; margin-top: 0.25rem; }
-  .btn-login:hover { background: var(--gold); color: var(--ink); }
-  .btn-login:disabled { opacity: 0.6; cursor: not-allowed; }
-  .login-hint { font-size: 0.68rem; color: var(--muted); text-align: center; margin-top: 1rem; line-height: 1.5; }
-  .resend-link { font-size: 0.68rem; color: var(--gold); cursor: pointer; text-decoration: underline; text-underline-offset: 2px; margin-top: 0.5rem; display: none; text-align: center; }
-  .resend-link.show { display: block; }
-
-  #app-screen { display: none; padding: 2rem 1rem 4rem; }
-  .container { max-width: 760px; margin: 0 auto; }
-  header { margin-bottom: 3rem; padding-bottom: 1.5rem; border-bottom: 2px solid var(--gold); display: flex; align-items: flex-end; justify-content: space-between; flex-wrap: wrap; gap: 1rem; }
-  header h1 { font-family: 'Playfair Display', serif; font-size: clamp(2rem,5vw,3.2rem); font-weight: 700; letter-spacing: -0.02em; line-height: 1; }
-  header h1 span { color: var(--gold); }
-  .header-right { display: flex; flex-direction: column; align-items: flex-end; gap: 0.5rem; }
-  .header-meta { font-size: 0.7rem; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; text-align: right; }
-  .user-bar { display: flex; align-items: center; gap: 0.6rem; }
-  .user-badge { font-size: 0.65rem; letter-spacing: 0.08em; color: var(--muted); background: var(--cream); border: 1px solid var(--border); border-radius: 99px; padding: 0.25rem 0.7rem; }
-  .user-badge strong { color: var(--ink); }
-  .btn-logout { font-family: 'DM Mono', monospace; font-size: 0.65rem; letter-spacing: 0.08em; text-transform: uppercase; background: transparent; color: var(--muted); border: 1px solid var(--border); border-radius: 2px; padding: 0.25rem 0.6rem; cursor: pointer; transition: all 0.15s; }
-  .btn-logout:hover { border-color: var(--rust); color: var(--rust); }
-
-  .setup-banner { background: rgba(200,168,75,0.1); border: 1px solid rgba(200,168,75,0.5); border-radius: 2px; padding: 1rem 1.2rem; margin-bottom: 1.5rem; font-size: 0.75rem; line-height: 1.6; display: none; }
-  .setup-banner.show { display: block; }
-  .setup-banner strong { color: var(--gold); }
-  .setup-banner a { color: var(--gold); }
-  .setup-fields { display: flex; flex-direction: column; gap: 0.5rem; margin-top: 0.75rem; }
-  .setup-fields input { font-family: 'DM Mono', monospace; font-size: 0.78rem; background: white; border: 1px solid var(--border); border-radius: 2px; padding: 0.45rem 0.7rem; color: var(--ink); outline: none; }
-  .setup-fields input:focus { border-color: var(--gold); }
-  .setup-actions { display: flex; gap: 0.5rem; margin-top: 0.6rem; flex-wrap: wrap; }
-  .btn-setup-save { font-family: 'DM Mono', monospace; font-size: 0.68rem; letter-spacing: 0.08em; text-transform: uppercase; background: var(--gold); color: var(--ink); border: none; border-radius: 2px; padding: 0.4rem 0.9rem; cursor: pointer; font-weight: 700; }
-  .btn-setup-dismiss { font-family: 'DM Mono', monospace; font-size: 0.68rem; letter-spacing: 0.08em; text-transform: uppercase; background: transparent; color: var(--muted); border: 1px solid var(--border); border-radius: 2px; padding: 0.4rem 0.9rem; cursor: pointer; }
-
-  .stats { display: flex; gap: 1.5rem; margin-bottom: 2rem; flex-wrap: wrap; }
-  .stat { display: flex; flex-direction: column; gap: 0.2rem; }
-  .stat-num { font-family: 'Playfair Display', serif; font-size: 1.8rem; font-weight: 700; line-height: 1; }
-  .stat-label { font-size: 0.6rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
-  .stat-num.gold { color: var(--gold); }
-  .stat-num.rust { color: var(--rust); }
-  .stat-num.sage { color: var(--sage); }
-
-  .add-form { background: white; border: 1px solid var(--border); border-radius: 2px; padding: 1.5rem; margin-bottom: 2rem; box-shadow: 4px 4px 0 var(--border); }
-  .form-title { font-size: 0.65rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); margin-bottom: 1rem; }
-  .form-row { display: flex; gap: 0.75rem; margin-bottom: 0.75rem; flex-wrap: wrap; }
-  .form-row input, .form-row select { font-family: 'DM Mono', monospace; font-size: 0.85rem; background: var(--paper); border: 1px solid var(--border); border-radius: 2px; padding: 0.6rem 0.8rem; color: var(--ink); outline: none; transition: border-color 0.2s; }
-  .form-row input:focus, .form-row select:focus { border-color: var(--gold); }
-  .form-row input[type="text"] { flex: 1; min-width: 200px; }
-  .form-row input[type="datetime-local"] { min-width: 215px; }
-  .form-row select { min-width: 140px; }
-  .form-group-new { display: flex; gap: 0.5rem; align-items: center; margin-bottom: 0.75rem; }
-  .form-group-new input { font-family: 'DM Mono', monospace; font-size: 0.85rem; background: var(--paper); border: 1px solid var(--border); border-radius: 2px; padding: 0.5rem 0.8rem; color: var(--ink); outline: none; flex: 1; }
-
-  .btn { font-family: 'DM Mono', monospace; font-size: 0.75rem; letter-spacing: 0.08em; text-transform: uppercase; border: none; cursor: pointer; border-radius: 2px; transition: all 0.15s; white-space: nowrap; }
-  .btn-primary { background: var(--ink); color: var(--paper); padding: 0.65rem 1.2rem; }
-  .btn-primary:hover { background: var(--gold); color: var(--ink); }
-  .btn-ghost { background: transparent; color: var(--muted); padding: 0.5rem 0.8rem; border: 1px solid var(--border); font-size: 0.7rem; }
-  .btn-ghost:hover { border-color: var(--gold); color: var(--gold); }
-  .btn-danger { background: transparent; color: var(--rust); border: none; padding: 0.3rem 0.4rem; font-size: 0.7rem; opacity: 0.6; cursor: pointer; }
-  .btn-danger:hover { opacity: 1; }
-
-  .groups-container { display: flex; flex-direction: column; gap: 1.5rem; }
-  .group { border: 1px solid var(--border); border-radius: 2px; background: white; overflow: hidden; box-shadow: 3px 3px 0 var(--cream); animation: slideIn 0.25s ease; }
-  @keyframes slideIn { from{opacity:0;transform:translateY(-8px)} to{opacity:1;transform:translateY(0)} }
-  @keyframes fadeIn  { from{opacity:0} to{opacity:1} }
-  .group-header { display: flex; align-items: center; gap: 0.75rem; padding: 0.9rem 1.2rem; background: var(--cream); border-bottom: 1px solid var(--border); cursor: pointer; user-select: none; }
-  .group-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
-  .group-name { font-family: 'Playfair Display', serif; font-size: 1rem; font-weight: 700; flex: 1; }
-  .group-count { font-size: 0.65rem; color: var(--muted); letter-spacing: 0.1em; padding: 0.2rem 0.5rem; background: white; border-radius: 99px; border: 1px solid var(--border); }
-  .group-toggle { font-size: 0.7rem; color: var(--muted); transition: transform 0.2s; }
-  .group-toggle.collapsed { transform: rotate(-90deg); }
-  .group-body { padding: 0; }
-  .group-body.hidden { display: none; }
-
-  .task { display: flex; align-items: flex-start; gap: 0.8rem; padding: 0.85rem 1.2rem; border-bottom: 1px solid var(--cream); transition: background 0.15s; animation: fadeIn 0.2s ease; }
-  .task:last-child { border-bottom: none; }
-  .task:hover { background: var(--paper); }
-  .task.done { opacity: 0.5; }
-  .task-check { width: 18px; height: 18px; border: 1.5px solid var(--border); border-radius: 2px; flex-shrink: 0; margin-top: 2px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.15s; background: white; }
-  .task-check:hover { border-color: var(--gold); }
-  .task-check.checked { background: var(--sage); border-color: var(--sage); }
-  .task-check.checked::after { content: '✓'; font-size: 11px; color: white; font-weight: bold; }
-  .task-body { flex: 1; min-width: 0; }
-  .task-text { font-size: 0.875rem; line-height: 1.5; word-break: break-word; }
-  .task.done .task-text { text-decoration: line-through; color: var(--muted); }
-  .task-meta { display: flex; align-items: center; gap: 0.5rem; margin-top: 0.3rem; flex-wrap: wrap; }
-  .deadline-badge { font-size: 0.65rem; letter-spacing: 0.05em; padding: 0.15rem 0.5rem; border-radius: 99px; border: 1px solid; }
-  .deadline-badge.ok      { color: var(--sage); border-color: var(--sage); background: rgba(107,143,113,0.08); }
-  .deadline-badge.soon    { color: var(--gold); border-color: var(--gold); background: rgba(200,168,75,0.1); }
-  .deadline-badge.overdue { color: var(--rust); border-color: var(--rust); background: rgba(184,92,56,0.1); }
-  .deadline-badge.alert   { color: var(--rust); border-color: var(--rust); background: rgba(184,92,56,0.15); animation: pulse 1.5s infinite; }
-  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
-  .notif-sent-badge { font-size: 0.6rem; color: var(--muted); border: 1px solid var(--border); padding: 0.1rem 0.45rem; border-radius: 99px; }
-  .task-actions { display: flex; gap: 0.2rem; flex-shrink: 0; opacity: 0; transition: opacity 0.15s; }
-  .task:hover .task-actions { opacity: 1; }
-  .btn-edit { background: transparent; color: var(--gold); border: none; padding: 0.3rem 0.45rem; font-size: 0.85rem; opacity: 0.7; cursor: pointer; transition: opacity 0.15s; font-family: inherit; }
-  .btn-edit:hover { opacity: 1; }
-
-  .ungrouped { border: 1px dashed var(--border); border-radius: 2px; background: white; overflow: hidden; }
-  .ungrouped-header { padding: 0.7rem 1.2rem; font-size: 0.65rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); background: var(--paper); border-bottom: 1px dashed var(--border); }
-
-  .notification-bar { position: fixed; bottom: 1.5rem; right: 1.5rem; max-width: 320px; background: var(--ink); color: var(--paper); border-radius: 3px; padding: 1rem 1.2rem; font-size: 0.78rem; line-height: 1.5; box-shadow: 0 8px 30px rgba(0,0,0,0.3); z-index: 1000; display: none; animation: slideUp 0.3s ease; border-left: 3px solid var(--gold); }
-  @keyframes slideUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
-  .notification-bar.show { display: block; }
-  .notification-title { font-family: 'Playfair Display', serif; font-size: 0.9rem; font-weight: 700; margin-bottom: 0.4rem; color: var(--gold-light); }
-  .notification-close { float: right; background: none; border: none; color: var(--muted); cursor: pointer; font-size: 1rem; line-height: 1; margin-left: 0.5rem; }
-  .notification-close:hover { color: white; }
-
-  .empty { text-align: center; padding: 3rem 1rem; color: var(--muted); font-size: 0.8rem; letter-spacing: 0.08em; }
-  .empty-icon { font-size: 2.5rem; margin-bottom: 0.75rem; opacity: 0.4; }
-
-  .color-picker { display: flex; gap: 0.4rem; align-items: center; }
-  .swatch { width: 16px; height: 16px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; transition: transform 0.15s; }
-  .swatch:hover, .swatch.selected { transform: scale(1.3); border-color: var(--ink); }
-
-  .filter-bar { display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
-  .toggle-label { font-size: 0.7rem; letter-spacing: 0.08em; color: var(--muted); display: flex; align-items: center; gap: 0.4rem; cursor: pointer; user-select: none; }
-  .toggle-label input { cursor: pointer; accent-color: var(--gold); }
-  .manage-groups-btn { display: inline-flex; align-items: center; gap: 0.4rem; font-family: 'DM Mono', monospace; font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; background: transparent; color: var(--muted); border: 1px solid var(--border); border-radius: 2px; padding: 0.45rem 0.9rem; cursor: pointer; transition: all 0.15s; }
-  .manage-groups-btn:hover { border-color: var(--gold); color: var(--gold); }
-
-  .modal-overlay { position: fixed; inset: 0; background: rgba(26,26,24,0.55); backdrop-filter: blur(2px); z-index: 500; display: flex; align-items: center; justify-content: center; padding: 1rem; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
-  .modal-overlay.open { opacity: 1; pointer-events: all; }
-  .modal { background: var(--paper); border: 1px solid var(--border); border-radius: 3px; box-shadow: 8px 8px 0 var(--border); width: 100%; max-width: 520px; max-height: 80vh; display: flex; flex-direction: column; transform: translateY(12px); transition: transform 0.2s; }
-  .modal-overlay.open .modal { transform: translateY(0); }
-  .modal-header { display: flex; align-items: center; justify-content: space-between; padding: 1.2rem 1.5rem 1rem; border-bottom: 1px solid var(--border); flex-shrink: 0; }
-  .modal-header h2 { font-family: 'Playfair Display', serif; font-size: 1.3rem; font-weight: 700; }
-  .modal-close { background: none; border: none; font-size: 1.1rem; color: var(--muted); cursor: pointer; padding: 0.2rem; line-height: 1; transition: color 0.15s; }
-  .modal-close:hover { color: var(--ink); }
-  .modal-body { overflow-y: auto; padding: 1rem 1.5rem; flex: 1; }
-  .modal-empty { text-align: center; padding: 2.5rem 1rem; color: var(--muted); font-size: 0.8rem; letter-spacing: 0.08em; }
-
-  .group-row { display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 0; border-bottom: 1px solid var(--cream); animation: fadeIn 0.2s ease; }
-  .group-row:last-child { border-bottom: none; }
-  .group-row-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; cursor: pointer; border: 2px solid transparent; transition: transform 0.15s; }
-  .group-row-dot:hover { transform: scale(1.3); border-color: var(--ink); }
-  .group-row-name-input { font-family: 'Playfair Display', serif; font-size: 0.95rem; font-weight: 700; background: transparent; border: none; border-bottom: 1.5px solid transparent; outline: none; flex: 1; color: var(--ink); padding: 0.15rem 0.1rem; transition: border-color 0.2s; min-width: 0; }
-  .group-row-name-input:focus { border-bottom-color: var(--gold); background: white; padding: 0.15rem 0.4rem; border-radius: 2px 2px 0 0; }
-  .group-row-meta { font-size: 0.65rem; color: var(--muted); letter-spacing: 0.05em; white-space: nowrap; flex-shrink: 0; }
-  .group-row-actions { display: flex; gap: 0.3rem; flex-shrink: 0; }
-  .btn-save { font-family: 'DM Mono', monospace; font-size: 0.65rem; letter-spacing: 0.08em; text-transform: uppercase; background: var(--sage); color: white; border: none; border-radius: 2px; padding: 0.3rem 0.6rem; cursor: pointer; opacity: 0; transition: opacity 0.15s; }
-  .btn-save.visible { opacity: 1; }
-
-  .color-popover { position: fixed; background: white; border: 1px solid var(--border); border-radius: 3px; box-shadow: 3px 3px 0 var(--border); padding: 0.6rem; display: flex; gap: 0.4rem; flex-wrap: wrap; width: 140px; z-index: 900; animation: fadeIn 0.15s ease; }
-  .color-popover .swatch { width: 18px; height: 18px; }
-
-  .edit-modal-overlay { position: fixed; inset: 0; background: rgba(26,26,24,0.5); backdrop-filter: blur(2px); z-index: 700; display: flex; align-items: center; justify-content: center; padding: 1rem; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
-  .edit-modal-overlay.open { opacity: 1; pointer-events: all; }
-  .edit-modal { background: var(--paper); border: 1px solid var(--border); border-radius: 3px; box-shadow: 8px 8px 0 var(--border); width: 100%; max-width: 480px; transform: translateY(10px); transition: transform 0.2s; }
-  .edit-modal-overlay.open .edit-modal { transform: translateY(0); }
-  .edit-modal-header { display: flex; align-items: center; justify-content: space-between; padding: 1.1rem 1.4rem 0.9rem; border-bottom: 1px solid var(--border); }
-  .edit-modal-header h3 { font-family: 'Playfair Display', serif; font-size: 1.1rem; font-weight: 700; }
-  .edit-modal-body { padding: 1.2rem 1.4rem; display: flex; flex-direction: column; gap: 0.9rem; }
-  .edit-field-label { font-size: 0.62rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.3rem; }
-  .edit-field input, .edit-field select, .edit-field textarea { font-family: 'DM Mono', monospace; font-size: 0.85rem; background: white; border: 1px solid var(--border); border-radius: 2px; padding: 0.6rem 0.8rem; color: var(--ink); outline: none; width: 100%; transition: border-color 0.2s; }
-  .edit-field input:focus, .edit-field select:focus, .edit-field textarea:focus { border-color: var(--gold); }
-  .edit-field textarea { resize: vertical; min-height: 70px; line-height: 1.5; }
-  .edit-modal-footer { display: flex; gap: 0.6rem; justify-content: flex-end; padding: 0.9rem 1.4rem 1.2rem; border-top: 1px solid var(--border); }
-
-  .confirm-overlay { position: fixed; inset: 0; background: rgba(26,26,24,0.45); z-index: 1200; display: flex; align-items: center; justify-content: center; padding: 1rem; animation: fadeIn 0.15s ease; }
-  .confirm-box { background: var(--paper); border: 1px solid var(--border); border-radius: 3px; box-shadow: 6px 6px 0 var(--border); padding: 1.5rem; max-width: 360px; width: 100%; }
-  .confirm-box-title { font-family: 'Playfair Display', serif; font-size: 1.1rem; font-weight: 700; margin-bottom: 0.5rem; }
-  .confirm-box-msg { font-size: 0.8rem; color: var(--muted); line-height: 1.5; margin-bottom: 1.2rem; }
-  .confirm-box-actions { display: flex; gap: 0.6rem; justify-content: flex-end; }
-  .btn-confirm-cancel { font-family: 'DM Mono', monospace; font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase; background: transparent; color: var(--muted); border: 1px solid var(--border); border-radius: 2px; padding: 0.5rem 1rem; cursor: pointer; transition: all 0.15s; }
-  .btn-confirm-cancel:hover { border-color: var(--ink); color: var(--ink); }
-  .btn-confirm-delete { font-family: 'DM Mono', monospace; font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase; background: var(--rust); color: white; border: none; border-radius: 2px; padding: 0.5rem 1rem; cursor: pointer; transition: all 0.15s; }
-  .btn-confirm-delete:hover { background: #a04828; }
-
-  @media (max-width:500px) {
-    .form-row { flex-direction: column; }
-    .form-row input, .form-row select { width: 100%; }
-    .login-form-body { padding: 1.2rem; }
-  }
+/* MODALS */
+.modal-overlay { position:fixed; inset:0; background:rgba(26,26,24,0.55); backdrop-filter:blur(2px); z-index:500; display:flex; align-items:center; justify-content:center; padding:1rem; opacity:0; pointer-events:none; transition:opacity 0.2s; }
+.modal-overlay.open { opacity:1; pointer-events:all; }
+.modal { background:var(--paper); border:1px solid var(--border); border-radius:3px; box-shadow:8px 8px 0 var(--border); width:100%; max-width:520px; max-height:80vh; display:flex; flex-direction:column; transform:translateY(12px); transition:transform 0.2s; }
+.modal-overlay.open .modal { transform:translateY(0); }
+.modal-header { display:flex; align-items:center; justify-content:space-between; padding:1.2rem 1.5rem 1rem; border-bottom:1px solid var(--border); flex-shrink:0; }
+.modal-header h2 { font-family:'Playfair Display',serif; font-size:1.3rem; font-weight:700; }
+.modal-close { background:none; border:none; font-size:1.1rem; color:var(--muted); cursor:pointer; padding:0.2rem; line-height:1; transition:color 0.15s; }
+.modal-close:hover { color:var(--ink); }
+.modal-body { overflow-y:auto; padding:1rem 1.5rem; flex:1; }
+.modal-empty { text-align:center; padding:2.5rem 1rem; color:var(--muted); font-size:0.8rem; }
+.group-row { display:flex; align-items:center; gap:0.75rem; padding:0.75rem 0; border-bottom:1px solid var(--cream); animation:fadeIn 0.2s ease; }
+.group-row:last-child { border-bottom:none; }
+.group-row-dot { width:12px; height:12px; border-radius:50%; flex-shrink:0; cursor:pointer; border:2px solid transparent; transition:transform 0.15s; }
+.group-row-dot:hover { transform:scale(1.3); border-color:var(--ink); }
+.group-row-name-input { font-family:'Playfair Display',serif; font-size:0.95rem; font-weight:700; background:transparent; border:none; border-bottom:1.5px solid transparent; outline:none; flex:1; color:var(--ink); padding:0.15rem 0.1rem; transition:border-color 0.2s; min-width:0; }
+.group-row-name-input:focus { border-bottom-color:var(--gold); background:white; padding:0.15rem 0.4rem; border-radius:2px 2px 0 0; }
+.group-row-meta { font-size:0.65rem; color:var(--muted); white-space:nowrap; flex-shrink:0; }
+.group-row-actions { display:flex; gap:0.3rem; flex-shrink:0; }
+.btn-save-grp { font-family:'DM Mono',monospace; font-size:0.65rem; letter-spacing:0.08em; text-transform:uppercase; background:var(--sage); color:white; border:none; border-radius:2px; padding:0.3rem 0.6rem; cursor:pointer; opacity:0; transition:opacity 0.15s; }
+.btn-save-grp.visible { opacity:1; }
+.edit-modal-overlay { position:fixed; inset:0; background:rgba(26,26,24,0.5); backdrop-filter:blur(2px); z-index:700; display:flex; align-items:center; justify-content:center; padding:1rem; opacity:0; pointer-events:none; transition:opacity 0.2s; }
+.edit-modal-overlay.open { opacity:1; pointer-events:all; }
+.edit-modal { background:var(--paper); border:1px solid var(--border); border-radius:3px; box-shadow:8px 8px 0 var(--border); width:100%; max-width:480px; transform:translateY(10px); transition:transform 0.2s; }
+.edit-modal-overlay.open .edit-modal { transform:translateY(0); }
+.edit-modal-header { display:flex; align-items:center; justify-content:space-between; padding:1.1rem 1.4rem 0.9rem; border-bottom:1px solid var(--border); }
+.edit-modal-header h3 { font-family:'Playfair Display',serif; font-size:1.1rem; font-weight:700; }
+.edit-modal-body { padding:1.2rem 1.4rem; display:flex; flex-direction:column; gap:0.9rem; }
+.edit-field-label { font-size:0.62rem; letter-spacing:0.12em; text-transform:uppercase; color:var(--muted); margin-bottom:0.3rem; }
+.edit-field input,.edit-field select,.edit-field textarea { font-family:'DM Mono',monospace; font-size:0.85rem; background:white; border:1px solid var(--border); border-radius:2px; padding:0.6rem 0.8rem; color:var(--ink); outline:none; width:100%; transition:border-color 0.2s; }
+.edit-field input:focus,.edit-field select:focus,.edit-field textarea:focus { border-color:var(--gold); }
+.edit-field textarea { resize:vertical; min-height:70px; line-height:1.5; }
+.edit-modal-footer { display:flex; gap:0.6rem; justify-content:flex-end; padding:0.9rem 1.4rem 1.2rem; border-top:1px solid var(--border); }
+.confirm-overlay { position:fixed; inset:0; background:rgba(26,26,24,0.45); z-index:1200; display:flex; align-items:center; justify-content:center; padding:1rem; animation:fadeIn 0.15s ease; }
+.confirm-box { background:var(--paper); border:1px solid var(--border); border-radius:3px; box-shadow:6px 6px 0 var(--border); padding:1.5rem; max-width:360px; width:100%; }
+.confirm-box-title { font-family:'Playfair Display',serif; font-size:1.1rem; font-weight:700; margin-bottom:0.5rem; }
+.confirm-box-msg { font-size:0.8rem; color:var(--muted); line-height:1.5; margin-bottom:1.2rem; }
+.confirm-box-actions { display:flex; gap:0.6rem; justify-content:flex-end; }
+.btn-confirm-cancel { font-family:'DM Mono',monospace; font-size:0.72rem; letter-spacing:0.08em; text-transform:uppercase; background:transparent; color:var(--muted); border:1px solid var(--border); border-radius:2px; padding:0.5rem 1rem; cursor:pointer; transition:all 0.15s; }
+.btn-confirm-cancel:hover { border-color:var(--ink); color:var(--ink); }
+.btn-confirm-delete { font-family:'DM Mono',monospace; font-size:0.72rem; letter-spacing:0.08em; text-transform:uppercase; background:var(--rust); color:white; border:none; border-radius:2px; padding:0.5rem 1rem; cursor:pointer; }
+.btn-confirm-delete:hover { background:#a04828; }
+.notification-bar { position:fixed; bottom:1.5rem; right:1.5rem; max-width:320px; background:var(--ink); color:var(--paper); border-radius:3px; padding:1rem 1.2rem; font-size:0.78rem; line-height:1.5; box-shadow:0 8px 30px rgba(0,0,0,0.3); z-index:1000; display:none; animation:slideUp 0.3s ease; border-left:3px solid var(--gold); }
+@keyframes slideUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
+.notification-bar.show { display:block; }
+.notification-title { font-family:'Playfair Display',serif; font-size:0.9rem; font-weight:700; margin-bottom:0.4rem; color:var(--gold-light); }
+.notification-close { float:right; background:none; border:none; color:var(--muted); cursor:pointer; font-size:1rem; line-height:1; margin-left:0.5rem; }
+.notification-close:hover { color:white; }
+@media(max-width:500px){.form-row{flex-direction:column}.form-row input,.form-row select{width:100%}.login-form-body{padding:1.2rem}.cal-pill{display:none}}
 </style>
 </head>
 <body>
@@ -225,26 +216,17 @@
       <p>Persönlicher Aufgaben-Manager</p>
     </div>
     <div class="login-tabs">
-      <button class="login-tab active" id="tab-login" onclick="switchTab('login')">Anmelden</button>
-      <button class="login-tab" id="tab-register" onclick="switchTab('register')">Registrieren</button>
+      <button class="login-tab active" id="tab-login">Anmelden</button>
+      <button class="login-tab" id="tab-register">Registrieren</button>
     </div>
     <div class="login-form-body">
       <div class="login-error" id="login-error"></div>
       <div class="login-success" id="login-success"></div>
-      <div class="login-field">
-        <label>E-Mail</label>
-        <input type="email" id="auth-email" autocomplete="email" placeholder="deine@email.com" />
-      </div>
-      <div class="login-field">
-        <label>Passwort</label>
-        <input type="password" id="auth-password" autocomplete="current-password" placeholder="••••••••" />
-      </div>
-      <div class="login-field" id="register-confirm-field" style="display:none;">
-        <label>Passwort bestätigen</label>
-        <input type="password" id="auth-password2" autocomplete="new-password" placeholder="••••••••" />
-      </div>
-      <button class="btn-login" id="auth-submit-btn" onclick="submitAuth()">Anmelden</button>
-      <div class="resend-link" id="resend-link" onclick="resendVerification()">↻ Bestätigungs-E-Mail erneut senden</div>
+      <div class="login-field"><label>E-Mail</label><input type="email" id="auth-email" autocomplete="email" placeholder="deine@email.com" /></div>
+      <div class="login-field"><label>Passwort</label><input type="password" id="auth-password" autocomplete="current-password" placeholder="••••••••" /></div>
+      <div class="login-field" id="register-confirm-field" style="display:none;"><label>Passwort bestätigen</label><input type="password" id="auth-password2" autocomplete="new-password" placeholder="••••••••" /></div>
+      <button class="btn-login" id="auth-submit-btn">Anmelden</button>
+      <div class="resend-link" id="resend-link">↻ Bestätigungs-E-Mail erneut senden</div>
       <div class="login-hint" id="login-hint">Noch kein Konto? Wechsle zum Tab „Registrieren".</div>
     </div>
   </div>
@@ -258,26 +240,10 @@
       <div class="header-meta" id="today-display"></div>
       <div class="user-bar">
         <div class="user-badge">👤 <strong id="user-display"></strong></div>
-        <button class="btn-logout" onclick="logout()">Abmelden</button>
+        <button class="btn-logout" id="btn-logout">Abmelden</button>
       </div>
     </div>
   </header>
-
-  <div class="setup-banner" id="setup-banner">
-    <strong>📧 E-Mail-Benachrichtigungen einrichten</strong><br>
-    Damit du 12 Stunden vor jeder Deadline eine E-Mail bekommst, benötigst du einen kostenlosen
-    <a href="https://www.emailjs.com" target="_blank">EmailJS-Account</a>.
-    Erstelle dort ein Service, ein Template (mit Variablen: <code>to_email</code>, <code>to_name</code>, <code>task_text</code>, <code>deadline_str</code>) und trage die IDs unten ein.
-    <div class="setup-fields">
-      <input type="text" id="ejs-public-key" placeholder="Public Key (Account → API Keys)" />
-      <input type="text" id="ejs-service-id" placeholder="Service ID (z.B. service_xxxxxx)" />
-      <input type="text" id="ejs-template-id" placeholder="Template ID (z.B. template_xxxxxx)" />
-    </div>
-    <div class="setup-actions">
-      <button class="btn-setup-save" onclick="saveEmailJSConfig()">Aktivieren</button>
-      <button class="btn-setup-dismiss" onclick="dismissSetupBanner()">Später</button>
-    </div>
-  </div>
 
   <div class="stats">
     <div class="stat"><div class="stat-num" id="stat-total">0</div><div class="stat-label">Gesamt</div></div>
@@ -294,7 +260,7 @@
     </div>
     <div class="form-row">
       <select id="group-select"><option value="">— Keine Gruppe —</option></select>
-      <button class="btn btn-primary" onclick="addTask()">Hinzufügen</button>
+      <button class="btn btn-primary" id="btn-add-task">Hinzufügen</button>
     </div>
     <details style="margin-top:0.5rem;">
       <summary style="font-size:0.7rem;color:var(--muted);cursor:pointer;letter-spacing:0.08em;list-style:none;user-select:none;">▸ Neue Gruppe erstellen</summary>
@@ -302,49 +268,70 @@
         <div class="form-group-new">
           <input type="text" id="group-name-input" placeholder="Gruppenname …" />
           <div class="color-picker" id="color-picker"></div>
-          <button class="btn btn-ghost" onclick="createGroup()">Erstellen</button>
+          <button class="btn btn-ghost" id="btn-create-group">Erstellen</button>
         </div>
       </div>
     </details>
   </div>
 
   <div class="filter-bar">
-    <label class="toggle-label"><input type="checkbox" id="hide-done" onchange="render()" /> Erledigte ausblenden</label>
-    <label class="toggle-label"><input type="checkbox" id="show-overdue-only" onchange="render()" /> Nur überfällige</label>
-    <button class="manage-groups-btn" onclick="openModal()">⊞ Gruppen verwalten</button>
+    <label class="toggle-label"><input type="checkbox" id="hide-done" /> Erledigte ausblenden</label>
+    <label class="toggle-label"><input type="checkbox" id="show-overdue-only" /> Nur überfällige</label>
+    <button class="manage-groups-btn" id="btn-open-modal">⊞ Gruppen verwalten</button>
   </div>
 
-  <div class="modal-overlay" id="modal-overlay" onclick="handleOverlayClick(event)">
-    <div class="modal">
-      <div class="modal-header"><h2>Gruppen verwalten</h2><button class="modal-close" onclick="closeModal()">✕</button></div>
-      <div class="modal-body" id="modal-body"></div>
-    </div>
-  </div>
-
-  <div class="edit-modal-overlay" id="edit-modal-overlay" onclick="handleEditOverlayClick(event)">
-    <div class="edit-modal">
-      <div class="edit-modal-header"><h3>Aufgabe bearbeiten</h3><button class="modal-close" onclick="closeEditTask()">✕</button></div>
-      <div class="edit-modal-body">
-        <div class="edit-field"><div class="edit-field-label">Aufgabe</div><textarea id="edit-text" rows="2"></textarea></div>
-        <div class="edit-field"><div class="edit-field-label">Fälligkeit (Datum &amp; Uhrzeit)</div><input type="datetime-local" id="edit-deadline" /></div>
-        <div class="edit-field"><div class="edit-field-label">Gruppe</div><select id="edit-group"></select></div>
+  <!-- CALENDAR -->
+  <div class="cal-section">
+    <div class="section-heading">Kalender</div>
+    <div class="calendar-wrap">
+      <div class="cal-header">
+        <button class="cal-nav" id="cal-prev">‹ Zurück</button>
+        <div class="cal-title" id="cal-title"></div>
+        <button class="cal-nav" id="cal-next">Weiter ›</button>
       </div>
-      <div class="edit-modal-footer">
-        <button class="btn-confirm-cancel" onclick="closeEditTask()">Abbrechen</button>
-        <button class="btn btn-primary" onclick="saveEditTask()">Speichern</button>
+      <div class="cal-grid" id="cal-grid">
+        <div class="cal-dow">Mo</div><div class="cal-dow">Di</div><div class="cal-dow">Mi</div>
+        <div class="cal-dow">Do</div><div class="cal-dow">Fr</div><div class="cal-dow">Sa</div><div class="cal-dow">So</div>
       </div>
     </div>
   </div>
 
-  <div id="app"></div>
+  <!-- TASKS -->
+  <div class="section-heading">Aufgaben</div>
+  <div id="app" style="margin-top:1rem;"></div>
 </div>
+</div>
+
+<!-- MODALS -->
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal">
+    <div class="modal-header"><h2>Gruppen verwalten</h2><button class="modal-close" id="btn-close-modal">✕</button></div>
+    <div class="modal-body" id="modal-body"></div>
+  </div>
+</div>
+
+<div class="edit-modal-overlay" id="edit-modal-overlay">
+  <div class="edit-modal">
+    <div class="edit-modal-header"><h3>Aufgabe bearbeiten</h3><button class="modal-close" id="btn-close-edit">✕</button></div>
+    <div class="edit-modal-body">
+      <div class="edit-field"><div class="edit-field-label">Aufgabe</div><textarea id="edit-text" rows="2"></textarea></div>
+      <div class="edit-field"><div class="edit-field-label">Fälligkeit</div><input type="datetime-local" id="edit-deadline" /></div>
+      <div class="edit-field"><div class="edit-field-label">Gruppe</div><select id="edit-group"></select></div>
+    </div>
+    <div class="edit-modal-footer">
+      <button class="btn-confirm-cancel" id="btn-cancel-edit">Abbrechen</button>
+      <button class="btn btn-primary" id="btn-save-edit">Speichern</button>
+    </div>
+  </div>
 </div>
 
 <div class="notification-bar" id="notif-bar">
-  <button class="notification-close" onclick="closeNotif()">✕</button>
+  <button class="notification-close" id="btn-close-notif">✕</button>
   <div class="notification-title">⚠ Erinnerung</div>
   <div id="notif-msg"></div>
 </div>
+
+<div class="cal-tooltip" id="cal-tooltip"></div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
@@ -357,491 +344,428 @@ const firebaseConfig = {
   projectId: "meine-aufgaben-df2d4",
   storageBucket: "meine-aufgaben-df2d4.firebasestorage.app",
   messagingSenderId: "6644574915",
-  appId: "1:6644574915:web:fe001fe5ed617c5be51076",
-  measurementId: "G-60RN6J9000"
+  appId: "1:6644574915:web:fe001fe5ed617c5be51076"
 };
+const EJS_PUBLIC_KEY  = '-4oDAg2Qrzcx7acBl';
+const EJS_SERVICE_ID  = 'service_x9g1rnk';
+const EJS_TEMPLATE_ID = 'template_59lndwy';
+const GROUP_COLORS = ['#c8a84b','#b85c38','#6b8f71','#5b7fa6','#9b6ea8','#d4845a','#4a8fa8','#a86e5b'];
+const MONTH_NAMES = ['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
 
 const firebaseApp = initializeApp(firebaseConfig);
 const auth = getAuth(firebaseApp);
-const db = getFirestore(firebaseApp);
+const db   = getFirestore(firebaseApp);
+if (window.emailjs) window.emailjs.init({ publicKey: EJS_PUBLIC_KEY });
 
-const GROUP_COLORS = ['#c8a84b','#b85c38','#6b8f71','#5b7fa6','#9b6ea8','#d4845a','#4a8fa8','#a86e5b'];
-let selectedColor = GROUP_COLORS[0];
 let currentUser = null;
 let state = { groups: [], tasks: [] };
 let _authMode = 'login';
 let _editingTaskId = null;
 let _colorPopover = null;
-let _pendingVerificationUser = null;
+let _pendingVerifUser = null;
+let selectedColor = GROUP_COLORS[0];
+let calYear, calMonth;
 
-// ── EMAILJS ──────────────────────────────────────────────────────────────────
-const EJS_PUBLIC_KEY  = '-4oDAg2Qrzcx7acBl';
-const EJS_SERVICE_ID  = 'service_x9g1rnk';
-const EJS_TEMPLATE_ID = 'template_59lndwy';
-
-function ejsConfigured() { return true; }
-function initEmailJS() {
-  if (window.emailjs) window.emailjs.init({ publicKey: EJS_PUBLIC_KEY });
-}
-window.saveEmailJSConfig = function() {}
-window.dismissSetupBanner = function() {
-  document.getElementById('setup-banner').classList.remove('show');
-}
-
-async function sendDeadlineEmail(task) {
-  if (!currentUser) return;
-  const deadlineStr = new Date(task.deadline).toLocaleDateString('de-AT', {
-    weekday:'long', year:'numeric', month:'long', day:'numeric', hour:'2-digit', minute:'2-digit'
-  });
-  try {
-    await window.emailjs.send(EJS_SERVICE_ID, EJS_TEMPLATE_ID, {
-      to_email: currentUser.email,
-      to_name:  currentUser.email.split('@')[0],
-      task_text: task.text,
-      deadline_str: deadlineStr
-    });
-  } catch(e) { console.error('EmailJS:', e); }
-}
-
-// ── FIREBASE SAVE/LOAD ───────────────────────────────────────────────────────
+// ── SAVE / LOAD ───────────────────────────────────────────────────────────────
 async function saveToAPI() {
   if (!currentUser) return;
-  try { await setDoc(doc(db, 'users', currentUser.uid), { state: JSON.stringify(state) }); }
-  catch(e) { console.error('Speichern:', e); }
+  try { await setDoc(doc(db,'users',currentUser.uid),{state:JSON.stringify(state)}); }
+  catch(e) { console.error('Save:',e); }
 }
-
 async function loadFromAPI() {
-  if (!currentUser) return;
   try {
-    const snap = await getDoc(doc(db, 'users', currentUser.uid));
-    if (snap.exists() && snap.data().state) {
+    const snap = await getDoc(doc(db,'users',currentUser.uid));
+    if (snap.exists()&&snap.data().state) {
       state = JSON.parse(snap.data().state);
-      // Migration: fehlende Felder ergänzen
-      state.tasks.forEach(t => { if (t.emailNotifSent === undefined) t.emailNotifSent = false; });
-    } else { state = { groups: [], tasks: [] }; }
-  } catch(e) { state = { groups: [], tasks: [] }; }
-  render();
-  checkDeadlineEmails();
-  checkNotifications();
+      state.tasks.forEach(t=>{ if(t.emailNotifSent===undefined) t.emailNotifSent=false; });
+    } else { state={groups:[],tasks:[]}; }
+  } catch(e) { state={groups:[],tasks:[]}; }
+  render(); renderCalendar(); checkDeadlineEmails(); checkNotifications();
 }
 
-// ── AUTH ─────────────────────────────────────────────────────────────────────
+// ── INIT ──────────────────────────────────────────────────────────────────────
 function initApp() {
-  initEmailJS();
-  onAuthStateChanged(auth, user => {
-    document.getElementById('loading-screen').style.display = 'none';
-    if (user) {
-      if (!user.emailVerified) {
-        _pendingVerificationUser = user;
-        signOut(auth);
-        setLoginSuccess('📬 Bitte bestätige deine E-Mail-Adresse. Wir haben dir einen Link geschickt.');
+  // Auth buttons
+  document.getElementById('tab-login').addEventListener('click', ()=>switchTab('login'));
+  document.getElementById('tab-register').addEventListener('click', ()=>switchTab('register'));
+  document.getElementById('auth-submit-btn').addEventListener('click', submitAuth);
+  document.getElementById('resend-link').addEventListener('click', resendVerification);
+  // App buttons
+  document.getElementById('btn-logout').addEventListener('click', logout);
+  document.getElementById('btn-add-task').addEventListener('click', addTask);
+  document.getElementById('btn-create-group').addEventListener('click', createGroup);
+  document.getElementById('btn-open-modal').addEventListener('click', openModal);
+  document.getElementById('btn-close-modal').addEventListener('click', closeModal);
+  document.getElementById('modal-overlay').addEventListener('click', e=>{ if(e.target===document.getElementById('modal-overlay')) closeModal(); });
+  document.getElementById('btn-close-edit').addEventListener('click', closeEditTask);
+  document.getElementById('btn-cancel-edit').addEventListener('click', closeEditTask);
+  document.getElementById('btn-save-edit').addEventListener('click', saveEditTask);
+  document.getElementById('edit-modal-overlay').addEventListener('click', e=>{ if(e.target===document.getElementById('edit-modal-overlay')) closeEditTask(); });
+  document.getElementById('btn-close-notif').addEventListener('click', ()=>document.getElementById('notif-bar').classList.remove('show'));
+  document.getElementById('hide-done').addEventListener('change', render);
+  document.getElementById('show-overdue-only').addEventListener('change', render);
+  document.getElementById('task-input').addEventListener('keydown', e=>{ if(e.key==='Enter') addTask(); });
+  document.getElementById('group-name-input').addEventListener('keydown', e=>{ if(e.key==='Enter') createGroup(); });
+  // Calendar nav
+  document.getElementById('cal-prev').addEventListener('click', ()=>{ calMonth--; if(calMonth<0){calMonth=11;calYear--;} renderCalendar(); });
+  document.getElementById('cal-next').addEventListener('click', ()=>{ calMonth++; if(calMonth>11){calMonth=0;calYear++;} renderCalendar(); });
+  // Global keys
+  document.addEventListener('keydown', e=>{
+    if(e.key==='Enter'&&document.getElementById('login-screen').style.display==='flex') submitAuth();
+    if(e.key==='Escape'){ closeModal(); closeEditTask(); }
+  });
+  // Color picker
+  const cp = document.getElementById('color-picker');
+  GROUP_COLORS.forEach(c=>{
+    const s=document.createElement('div'); s.className='swatch'+(c===selectedColor?' selected':''); s.style.background=c;
+    s.addEventListener('click',()=>{ selectedColor=c; cp.querySelectorAll('.swatch').forEach(el=>el.classList.remove('selected')); s.classList.add('selected'); });
+    cp.appendChild(s);
+  });
+  // Firebase auth
+  onAuthStateChanged(auth, user=>{
+    document.getElementById('loading-screen').style.display='none';
+    if(user){
+      if(!user.emailVerified){
+        _pendingVerifUser=user; signOut(auth);
+        setLoginSuccess('📬 Bitte bestätige deine E-Mail-Adresse.');
         document.getElementById('resend-link').classList.add('show');
-        showLoginScreen('login');
-        return;
+        showLoginScreen('login'); return;
       }
-      currentUser = user;
-      showAppScreen(user);
-      loadFromAPI();
+      currentUser=user; showAppScreen(user); loadFromAPI();
     } else {
-      currentUser = null;
-      state = { groups: [], tasks: [] };
-      showLoginScreen('login');
+      currentUser=null; state={groups:[],tasks:[]}; showLoginScreen('login');
     }
   });
 }
 
 function showLoginScreen(mode) {
-  document.getElementById('login-screen').style.display = 'flex';
-  document.getElementById('app-screen').style.display = 'none';
-  switchTab(mode || 'login');
-  setTimeout(() => document.getElementById('auth-email').focus(), 100);
+  document.getElementById('login-screen').style.display='flex';
+  document.getElementById('app-screen').style.display='none';
+  switchTab(mode||'login');
+  setTimeout(()=>document.getElementById('auth-email').focus(),100);
 }
-
 function showAppScreen(user) {
-  document.getElementById('login-screen').style.display = 'none';
-  document.getElementById('app-screen').style.display = 'block';
-  document.getElementById('user-display').textContent = user.email.split('@')[0];
-  document.getElementById('today-display').innerHTML =
-    new Date().toLocaleDateString('de-AT', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
-
-  // EmailJS ist bereits konfiguriert — kein Banner nötig
-
-  const cp = document.getElementById('color-picker');
-  cp.innerHTML = '';
-  GROUP_COLORS.forEach(c => {
-    const s = document.createElement('div');
-    s.className = 'swatch' + (c === selectedColor ? ' selected' : '');
-    s.style.background = c;
-    s.onclick = () => { selectedColor = c; document.querySelectorAll('#color-picker .swatch').forEach(el => el.classList.remove('selected')); s.classList.add('selected'); };
-    cp.appendChild(s);
-  });
-
-  document.getElementById('task-input').addEventListener('keydown', e => { if(e.key==='Enter') addTask(); });
-  document.getElementById('group-name-input').addEventListener('keydown', e => { if(e.key==='Enter') createGroup(); });
-  setInterval(() => { checkDeadlineEmails(); checkNotifications(); }, 30 * 60 * 1000);
+  document.getElementById('login-screen').style.display='none';
+  document.getElementById('app-screen').style.display='block';
+  document.getElementById('user-display').textContent=user.email.split('@')[0];
+  document.getElementById('today-display').innerHTML=new Date().toLocaleDateString('de-AT',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  const now=new Date(); calYear=now.getFullYear(); calMonth=now.getMonth();
+  setInterval(()=>{ checkDeadlineEmails(); checkNotifications(); }, 30*60*1000);
 }
 
-window.switchTab = function(mode) {
-  _authMode = mode;
-  document.getElementById('tab-login').classList.toggle('active', mode==='login');
-  document.getElementById('tab-register').classList.toggle('active', mode==='register');
-  document.getElementById('register-confirm-field').style.display = mode==='register' ? '' : 'none';
-  document.getElementById('auth-submit-btn').textContent = mode==='login' ? 'Anmelden' : 'Konto erstellen';
-  document.getElementById('login-hint').textContent = mode==='login'
-    ? 'Noch kein Konto? Wechsle zum Tab „Registrieren".'
-    : 'Schon ein Konto? Wechsle zum Tab „Anmelden".';
+function switchTab(mode) {
+  _authMode=mode;
+  document.getElementById('tab-login').classList.toggle('active',mode==='login');
+  document.getElementById('tab-register').classList.toggle('active',mode==='register');
+  document.getElementById('register-confirm-field').style.display=mode==='register'?'':'none';
+  document.getElementById('auth-submit-btn').textContent=mode==='login'?'Anmelden':'Konto erstellen';
+  document.getElementById('login-hint').textContent=mode==='login'?'Noch kein Konto? Wechsle zum Tab „Registrieren".':'Schon ein Konto? Wechsle zum Tab „Anmelden".';
   document.getElementById('login-error').classList.remove('show');
   document.getElementById('login-success').classList.remove('show');
   document.getElementById('resend-link').classList.remove('show');
-  document.getElementById('auth-password').value = '';
-  document.getElementById('auth-password2').value = '';
+  document.getElementById('auth-password').value='';
+  document.getElementById('auth-password2').value='';
 }
-
 function setLoginError(msg)   { const e=document.getElementById('login-error');   e.textContent=msg; e.classList.add('show'); document.getElementById('login-success').classList.remove('show'); }
 function setLoginSuccess(msg) { const e=document.getElementById('login-success'); e.textContent=msg; e.classList.add('show'); document.getElementById('login-error').classList.remove('show'); }
 
-window.resendVerification = async function() {
-  if (!_pendingVerificationUser) { setLoginError('Bitte registriere dich zuerst neu.'); return; }
-  try { await sendEmailVerification(_pendingVerificationUser); setLoginSuccess('✓ Bestätigungs-E-Mail erneut gesendet.'); }
-  catch(e) { setLoginError(e.message); }
+async function resendVerification() {
+  if(!_pendingVerifUser){ setLoginError('Bitte registriere dich zuerst.'); return; }
+  try { await sendEmailVerification(_pendingVerifUser); setLoginSuccess('✓ Link erneut gesendet.'); }
+  catch(e){ setLoginError(e.message); }
 }
-
-window.submitAuth = async function() {
-  const email    = document.getElementById('auth-email').value.trim();
-  const password = document.getElementById('auth-password').value;
-  const btn      = document.getElementById('auth-submit-btn');
-  if (!email)    { setLoginError('Bitte E-Mail eingeben.'); return; }
-  if (!password) { setLoginError('Bitte Passwort eingeben.'); return; }
-  btn.disabled = true; btn.textContent = '…';
-
+async function submitAuth() {
+  const email=document.getElementById('auth-email').value.trim();
+  const pass=document.getElementById('auth-password').value;
+  const btn=document.getElementById('auth-submit-btn');
+  if(!email){ setLoginError('Bitte E-Mail eingeben.'); return; }
+  if(!pass) { setLoginError('Bitte Passwort eingeben.'); return; }
+  btn.disabled=true; btn.textContent='…';
   try {
-    if (_authMode === 'login') {
-      const cred = await signInWithEmailAndPassword(auth, email, password);
-      if (!cred.user.emailVerified) {
-        _pendingVerificationUser = cred.user;
-        await signOut(auth);
-        btn.disabled = false; btn.textContent = 'Anmelden';
-        setLoginSuccess('📬 E-Mail noch nicht bestätigt. Bitte prüfe dein Postfach.');
-        document.getElementById('resend-link').classList.add('show');
+    if(_authMode==='login'){
+      const cred=await signInWithEmailAndPassword(auth,email,pass);
+      if(!cred.user.emailVerified){
+        _pendingVerifUser=cred.user; await signOut(auth);
+        btn.disabled=false; btn.textContent='Anmelden';
+        setLoginSuccess('📬 E-Mail noch nicht bestätigt.'); document.getElementById('resend-link').classList.add('show');
       }
-      // sonst übernimmt onAuthStateChanged
     } else {
-      const pw2 = document.getElementById('auth-password2').value;
-      if (password !== pw2)   { setLoginError('Passwörter stimmen nicht überein.'); btn.disabled=false; btn.textContent='Konto erstellen'; return; }
-      if (password.length < 6){ setLoginError('Passwort muss mind. 6 Zeichen lang sein.'); btn.disabled=false; btn.textContent='Konto erstellen'; return; }
-      const cred = await createUserWithEmailAndPassword(auth, email, password);
-      _pendingVerificationUser = cred.user;
-      await sendEmailVerification(cred.user);
-      await signOut(auth);
-      btn.disabled = false; btn.textContent = 'Konto erstellen';
-      setLoginSuccess('🎉 Konto erstellt! Bestätigungs-E-Mail verschickt. Bitte bestätige deine Adresse und melde dich dann an.');
-      document.getElementById('resend-link').classList.add('show');
-      switchTab('login');
+      const pw2=document.getElementById('auth-password2').value;
+      if(pass!==pw2)   { setLoginError('Passwörter stimmen nicht überein.'); btn.disabled=false; btn.textContent='Konto erstellen'; return; }
+      if(pass.length<6){ setLoginError('Passwort mind. 6 Zeichen.'); btn.disabled=false; btn.textContent='Konto erstellen'; return; }
+      const cred=await createUserWithEmailAndPassword(auth,email,pass);
+      _pendingVerifUser=cred.user; await sendEmailVerification(cred.user); await signOut(auth);
+      btn.disabled=false; btn.textContent='Konto erstellen';
+      setLoginSuccess('🎉 Konto erstellt! Bitte E-Mail bestätigen, dann anmelden.');
+      document.getElementById('resend-link').classList.add('show'); switchTab('login');
     }
-  } catch(e) {
-    btn.disabled = false;
-    btn.textContent = _authMode==='login' ? 'Anmelden' : 'Konto erstellen';
-    const msgs = {
-      'auth/user-not-found':'Kein Konto mit dieser E-Mail.',
-      'auth/wrong-password':'Falsches Passwort.',
-      'auth/email-already-in-use':'Diese E-Mail ist bereits registriert.',
-      'auth/invalid-email':'Ungültige E-Mail-Adresse.',
-      'auth/too-many-requests':'Zu viele Versuche. Bitte warte kurz.',
-      'auth/invalid-credential':'E-Mail oder Passwort falsch.'
-    };
-    setLoginError(msgs[e.code] || e.message);
+  } catch(e){
+    btn.disabled=false; btn.textContent=_authMode==='login'?'Anmelden':'Konto erstellen';
+    const m={'auth/user-not-found':'Kein Konto mit dieser E-Mail.','auth/wrong-password':'Falsches Passwort.','auth/email-already-in-use':'E-Mail bereits registriert.','auth/invalid-email':'Ungültige E-Mail.','auth/too-many-requests':'Zu viele Versuche.','auth/invalid-credential':'E-Mail oder Passwort falsch.'};
+    setLoginError(m[e.code]||e.message);
   }
 }
-
-window.logout = async function() {
-  await signOut(auth);
-  currentUser = null; state = { groups:[], tasks:[] };
-  document.getElementById('auth-email').value = '';
-  document.getElementById('auth-password').value = '';
-  document.getElementById('auth-password2').value = '';
+async function logout() {
+  await signOut(auth); currentUser=null; state={groups:[],tasks:[]};
+  document.getElementById('auth-email').value=''; document.getElementById('auth-password').value=''; document.getElementById('auth-password2').value='';
 }
 
-document.addEventListener('keydown', e => {
-  if (e.key==='Enter' && document.getElementById('login-screen').style.display!=='none') submitAuth();
-  if (e.key==='Escape') { closeModal(); closeEditTask(); }
-});
-
-// ── 12H DEADLINE E-MAIL ──────────────────────────────────────────────────────
-async function checkDeadlineEmails() {
-  if (!currentUser) return;
-  const now = Date.now();
-  const WINDOW = 12 * 60 * 60 * 1000;
-  let dirty = false;
-  for (const t of state.tasks) {
-    if (t.done || !t.deadline || t.emailNotifSent) continue;
-    const ms = new Date(t.deadline).getTime();
-    if (ms > now && ms - now <= WINDOW) {
-      await sendDeadlineEmail(t);
-      t.emailNotifSent = true;
-      dirty = true;
-    }
-  }
-  if (dirty) { await saveToAPI(); render(); }
+// ── TASKS ─────────────────────────────────────────────────────────────────────
+function addTask() {
+  const text=document.getElementById('task-input').value.trim();
+  const deadline=document.getElementById('deadline-input').value;
+  const groupId=document.getElementById('group-select').value;
+  if(!text) return;
+  state.tasks.push({id:uid(),text,deadline,groupId,done:false,createdAt:new Date().toISOString(),emailNotifSent:false});
+  saveToAPI(); render(); renderCalendar();
+  document.getElementById('task-input').value=''; document.getElementById('deadline-input').value='';
 }
-
-// ── GROUPS ───────────────────────────────────────────────────────────────────
-window.createGroup = function() {
-  const name = document.getElementById('group-name-input').value.trim();
-  if (!name) return;
-  state.groups.push({ id: uid(), name, color: selectedColor });
-  saveToAPI(); updateGroupSelect(); render();
-  document.getElementById('group-name-input').value = '';
+function toggleTask(id) {
+  const t=state.tasks.find(t=>t.id===id); if(t){t.done=!t.done; saveToAPI(); render(); renderCalendar();}
 }
-window.deleteGroup = function(id) {
-  const g = state.groups.find(g=>g.id===id);
-  const count = state.tasks.filter(t=>t.groupId===id).length;
-  showConfirm(`Gruppe "${g?.name}" löschen?`,
-    count>0 ? `${count} Aufgabe(n) werden ohne Gruppe fortgeführt.` : 'Die Gruppe ist leer.',
-    () => { state.groups=state.groups.filter(g=>g.id!==id); state.tasks.forEach(t=>{if(t.groupId===id)t.groupId='';}); saveToAPI(); render(); });
+function deleteTask(id) {
+  const t=state.tasks.find(t=>t.id===id);
+  showConfirm('Aufgabe löschen?',`"${t?.text}"`,()=>{ state.tasks=state.tasks.filter(t=>t.id!==id); saveToAPI(); render(); renderCalendar(); });
 }
-function updateGroupSelect() {
-  const sel = document.getElementById('group-select');
-  const val = sel.value;
-  sel.innerHTML = '<option value="">— Keine Gruppe —</option>';
-  state.groups.forEach(g => { const o=document.createElement('option'); o.value=g.id; o.textContent=g.name; sel.appendChild(o); });
-  sel.value = val;
-}
-
-// ── TASKS ────────────────────────────────────────────────────────────────────
-window.addTask = function() {
-  const text = document.getElementById('task-input').value.trim();
-  if (!text) return;
-  state.tasks.push({
-    id: uid(), text,
-    groupId: document.getElementById('group-select').value,
-    deadline: document.getElementById('deadline-input').value || '',
-    done: false, doneAt: null, createdAt: Date.now(), emailNotifSent: false
-  });
-  saveToAPI();
-  document.getElementById('task-input').value = '';
-  document.getElementById('deadline-input').value = '';
-  render();
-  checkDeadlineEmails();
-}
-window.toggleDone = function(id) {
-  const t = state.tasks.find(t=>t.id===id); if (!t) return;
-  t.done=!t.done; t.doneAt=t.done?Date.now():null;
-  saveToAPI(); render();
-}
-window.deleteTask = function(id) {
-  state.tasks=state.tasks.filter(t=>t.id!==id); saveToAPI(); render();
-}
-
-// ── RENDER ───────────────────────────────────────────────────────────────────
-function render() {
-  updateGroupSelect(); updateStats();
-  const app = document.getElementById('app');
-  const hideDone    = document.getElementById('hide-done').checked;
-  const overdueOnly = document.getElementById('show-overdue-only').checked;
-  let tasks = state.tasks;
-  if (hideDone)    tasks = tasks.filter(t=>!t.done);
-  if (overdueOnly) tasks = tasks.filter(t=>!t.done && t.deadline && new Date(t.deadline)<new Date());
-
-  if (!tasks.length && !state.tasks.length) {
-    app.innerHTML=`<div class="empty"><div class="empty-icon">📋</div>Noch keine Aufgaben.<br>Füge oben deine erste Aufgabe hinzu.</div>`;
-    return;
-  }
-  let html = '<div class="groups-container">';
-  state.groups.forEach(g => {
-    const gT=tasks.filter(t=>t.groupId===g.id), allT=state.tasks.filter(t=>t.groupId===g.id);
-    if (!gT.length && !allT.length) return;
-    const done=allT.filter(t=>t.done).length;
-    html+=`<div class="group"><div class="group-header" onclick="toggleGroup('${g.id}')">
-      <div class="group-dot" style="background:${g.color}"></div>
-      <div class="group-name">${esc(g.name)}</div>
-      <div class="group-count">${done}/${allT.length} erledigt</div>
-      <div class="group-toggle" id="toggle-${g.id}">▾</div>
-      <button class="btn btn-danger" onclick="event.stopPropagation();deleteGroup('${g.id}')">✕</button>
-    </div><div class="group-body" id="body-${g.id}">`;
-    if (!gT.length) html+=`<div style="padding:1rem 1.2rem;font-size:0.75rem;color:var(--muted);">Alle Aufgaben erledigt ✓</div>`;
-    else gT.forEach(t=>{html+=renderTask(t);});
-    html+=`</div></div>`;
-  });
-  const ug=tasks.filter(t=>!t.groupId);
-  if (ug.length) { html+=`<div class="ungrouped"><div class="ungrouped-header">Ohne Gruppe</div>`; ug.forEach(t=>{html+=renderTask(t);}); html+=`</div>`; }
-  html+='</div>';
-  app.innerHTML=html;
-}
-window.render=render;
-
-function renderTask(t) {
-  const checked=t.done?'checked':'', doneClass=t.done?'done':'';
-  let badge='';
-  if (t.deadline && !t.done) {
-    const s=deadlineStatus(t.deadline);
-    const notifTag=t.emailNotifSent?`<span class="notif-sent-badge" title="E-Mail-Erinnerung gesendet">✉ gesendet</span>`:'';
-    badge=`<span class="deadline-badge ${s}">${formatDeadline(t.deadline,s)}</span>${notifTag}`;
-  } else if (t.deadline && t.done) {
-    badge=`<span class="deadline-badge ok">✓ ${formatDateTime(t.deadline)}</span>`;
-  }
-  return `<div class="task ${doneClass}" id="task-${t.id}">
-    <div class="task-check ${checked}" onclick="toggleDone('${t.id}')"></div>
-    <div class="task-body"><div class="task-text">${esc(t.text)}</div><div class="task-meta">${badge}</div></div>
-    <div class="task-actions">
-      <button class="btn-edit" onclick="openEditTask('${t.id}')" title="Bearbeiten">✎</button>
-      <button class="btn btn-danger" onclick="deleteTask('${t.id}')" title="Löschen">✕</button>
-    </div>
-  </div>`;
-}
-window.toggleGroup = function(id) {
-  const body=document.getElementById('body-'+id), arrow=document.getElementById('toggle-'+id);
-  body.classList.toggle('hidden');
-  arrow.classList.toggle('collapsed', body.classList.contains('hidden'));
-}
-
-// ── STATS ────────────────────────────────────────────────────────────────────
-function updateStats() {
-  const now=new Date(), todayS=new Date(now.getFullYear(),now.getMonth(),now.getDate()), todayE=new Date(now.getFullYear(),now.getMonth(),now.getDate(),23,59,59,999);
-  document.getElementById('stat-total').textContent   = state.tasks.length;
-  document.getElementById('stat-done').textContent    = state.tasks.filter(t=>t.done).length;
-  document.getElementById('stat-overdue').textContent = state.tasks.filter(t=>!t.done&&t.deadline&&new Date(t.deadline)<now).length;
-  document.getElementById('stat-today').textContent   = state.tasks.filter(t=>{ if(t.done||!t.deadline)return false; const d=new Date(t.deadline); return d>=todayS&&d<=todayE; }).length;
-}
-
-// ── BROWSER NOTIFICATIONS ────────────────────────────────────────────────────
-function checkNotifications() {
-  const now=Date.now(), alerts=[];
-  state.tasks.forEach(t=>{
-    if (t.done) return;
-    if (t.deadline) {
-      const ms=new Date(t.deadline).getTime(), diff=(ms-now)/(3600000);
-      if (ms<now)        alerts.push(`• "${t.text}" — Überfällig seit ${formatDateTime(t.deadline)}`);
-      else if (diff<=12) alerts.push(`• "${t.text}" — Noch ca. ${Math.round(diff)}h verbleibend`);
-    } else if (now-t.createdAt>86400000) {
-      alerts.push(`• "${t.text}" — Seit mehr als 24h offen`);
-    }
-  });
-  if (alerts.length) showNotif(alerts.slice(0,3).join('\n')+(alerts.length>3?`\n… und ${alerts.length-3} weitere`:''));
-}
-window.showNotif  = function(msg) { document.getElementById('notif-msg').textContent=msg; document.getElementById('notif-bar').classList.add('show'); setTimeout(closeNotif,8000); }
-window.closeNotif = function()    { document.getElementById('notif-bar').classList.remove('show'); }
-
-// ── EDIT TASK ────────────────────────────────────────────────────────────────
-window.openEditTask = function(id) {
-  const t=state.tasks.find(t=>t.id===id); if (!t) return;
+function openEditTask(id) {
+  const t=state.tasks.find(t=>t.id===id); if(!t) return;
   _editingTaskId=id;
   document.getElementById('edit-text').value=t.text;
   document.getElementById('edit-deadline').value=t.deadline||'';
   const sel=document.getElementById('edit-group');
-  sel.innerHTML='<option value="">— Keine Gruppe —</option>';
-  state.groups.forEach(g=>{const o=document.createElement('option');o.value=g.id;o.textContent=g.name;if(g.id===t.groupId)o.selected=true;sel.appendChild(o);});
-  document.getElementById('edit-modal-overlay').classList.add('open');
-  document.body.style.overflow='hidden';
-  setTimeout(()=>document.getElementById('edit-text').focus(),100);
+  sel.innerHTML='<option value="">— Keine Gruppe —</option>'+state.groups.map(g=>`<option value="${g.id}"${g.id===t.groupId?' selected':''}>${esc(g.name)}</option>`).join('');
+  document.getElementById('edit-modal-overlay').classList.add('open'); document.body.style.overflow='hidden';
 }
-window.closeEditTask = function() { document.getElementById('edit-modal-overlay').classList.remove('open'); document.body.style.overflow=''; _editingTaskId=null; }
-window.handleEditOverlayClick = function(e) { if(e.target===document.getElementById('edit-modal-overlay'))closeEditTask(); }
-window.saveEditTask = function() {
-  if (!_editingTaskId) return;
-  const t=state.tasks.find(t=>t.id===_editingTaskId); if (!t) return;
-  const text=document.getElementById('edit-text').value.trim(); if (!text) return;
-  const newDL=document.getElementById('edit-deadline').value||'';
-  if (newDL!==t.deadline) t.emailNotifSent=false; // Reset bei Deadline-Änderung
-  t.text=text; t.deadline=newDL; t.groupId=document.getElementById('edit-group').value;
-  saveToAPI(); render(); closeEditTask(); checkDeadlineEmails();
+function closeEditTask() { document.getElementById('edit-modal-overlay').classList.remove('open'); document.body.style.overflow=''; _editingTaskId=null; }
+function saveEditTask() {
+  if(!_editingTaskId) return;
+  const t=state.tasks.find(t=>t.id===_editingTaskId); if(!t) return;
+  t.text=document.getElementById('edit-text').value.trim()||t.text;
+  t.deadline=document.getElementById('edit-deadline').value;
+  t.groupId=document.getElementById('edit-group').value;
+  saveToAPI(); render(); renderCalendar(); closeEditTask();
 }
 
-// ── GROUP MODAL ──────────────────────────────────────────────────────────────
-window.openModal = function() { renderModal(); document.getElementById('modal-overlay').classList.add('open'); document.body.style.overflow='hidden'; }
-window.closeModal = function() { document.getElementById('modal-overlay').classList.remove('open'); document.body.style.overflow=''; closeColorPopover(); }
-window.handleOverlayClick = function(e) { if(e.target===document.getElementById('modal-overlay'))closeModal(); }
+// ── GROUPS ────────────────────────────────────────────────────────────────────
+function createGroup() {
+  const name=document.getElementById('group-name-input').value.trim(); if(!name) return;
+  state.groups.push({id:uid(),name,color:selectedColor});
+  saveToAPI(); updateGroupSelect(); render(); renderCalendar();
+  document.getElementById('group-name-input').value='';
+}
+function updateGroupSelect() {
+  const sel=document.getElementById('group-select');
+  sel.innerHTML='<option value="">— Keine Gruppe —</option>'+state.groups.map(g=>`<option value="${g.id}">${esc(g.name)}</option>`).join('');
+}
+function openModal() { renderModal(); document.getElementById('modal-overlay').classList.add('open'); document.body.style.overflow='hidden'; }
+function closeModal() { document.getElementById('modal-overlay').classList.remove('open'); document.body.style.overflow=''; closeColorPopover(); }
 function renderModal() {
   const body=document.getElementById('modal-body');
-  if (!state.groups.length) { body.innerHTML=`<div class="modal-empty">Noch keine Gruppen vorhanden.<br>Erstelle eine Gruppe im Formular oben.</div>`; return; }
-  let html='';
-  state.groups.forEach(g=>{
+  if(!state.groups.length){ body.innerHTML='<div class="modal-empty">Noch keine Gruppen vorhanden.</div>'; return; }
+  body.innerHTML=state.groups.map(g=>{
     const tc=state.tasks.filter(t=>t.groupId===g.id).length, dc=state.tasks.filter(t=>t.groupId===g.id&&t.done).length;
-    html+=`<div class="group-row" id="grow-${g.id}">
-      <div class="group-row-dot" style="background:${g.color}" onclick="openColorPopover('${g.id}',this)" title="Farbe ändern"></div>
-      <input class="group-row-name-input" id="gname-${g.id}" type="text" value="${esc(g.name)}"
-        onkeydown="handleGroupNameKey(event,'${g.id}')" oninput="showSaveBtn('${g.id}')" />
-      <div class="group-row-meta">${tc} Aufgaben · ${dc} erledigt</div>
-      <div class="group-row-actions">
-        <button class="btn-save" id="gsave-${g.id}" onclick="saveGroupName('${g.id}')">Speichern</button>
-        <button class="btn btn-danger" onclick="deleteGroupFromModal('${g.id}')">✕</button>
-      </div>
-    </div>`;
+    return `<div class="group-row"><div class="group-row-dot" style="background:${g.color}" data-gid="${g.id}"></div><input class="group-row-name-input" id="gname-${g.id}" type="text" value="${esc(g.name)}" data-gid="${g.id}"/><div class="group-row-meta">${tc} Aufgaben · ${dc} erledigt</div><div class="group-row-actions"><button class="btn-save-grp" id="gsave-${g.id}" data-gid="${g.id}">Speichern</button><button class="btn btn-danger" data-del-gid="${g.id}">✕</button></div></div>`;
+  }).join('');
+  body.querySelectorAll('.group-row-dot').forEach(el=>el.addEventListener('click',()=>openColorPopover(el.dataset.gid,el)));
+  body.querySelectorAll('.group-row-name-input').forEach(el=>{
+    el.addEventListener('input',()=>document.getElementById('gsave-'+el.dataset.gid).classList.add('visible'));
+    el.addEventListener('keydown',e=>{ if(e.key==='Enter') saveGroupName(el.dataset.gid); if(e.key==='Escape'){const g=state.groups.find(g=>g.id===el.dataset.gid);if(g)el.value=g.name; document.getElementById('gsave-'+el.dataset.gid).classList.remove('visible');} });
   });
-  body.innerHTML=html;
+  body.querySelectorAll('.btn-save-grp').forEach(el=>el.addEventListener('click',()=>saveGroupName(el.dataset.gid)));
+  body.querySelectorAll('[data-del-gid]').forEach(el=>el.addEventListener('click',()=>deleteGroupFromModal(el.dataset.delGid)));
 }
-window.showSaveBtn = function(id) { document.getElementById('gsave-'+id).classList.add('visible'); }
-window.handleGroupNameKey = function(e,id) {
-  if(e.key==='Enter'){e.preventDefault();saveGroupName(id);}
-  if(e.key==='Escape'){const g=state.groups.find(g=>g.id===id);if(g)document.getElementById('gname-'+id).value=g.name;document.getElementById('gsave-'+id).classList.remove('visible');}
-}
-window.saveGroupName = function(id) {
+function saveGroupName(id) {
   const input=document.getElementById('gname-'+id), name=input.value.trim();
-  if (!name){input.value=state.groups.find(g=>g.id===id)?.name||'';return;}
-  const g=state.groups.find(g=>g.id===id);
-  if(g){g.name=name;saveToAPI();render();updateGroupSelect();}
+  if(!name){input.value=state.groups.find(g=>g.id===id)?.name||'';return;}
+  const g=state.groups.find(g=>g.id===id); if(g){g.name=name;saveToAPI();render();renderCalendar();updateGroupSelect();}
   document.getElementById('gsave-'+id).classList.remove('visible');
   input.style.background='rgba(107,143,113,0.15)'; setTimeout(()=>{input.style.background='';},600);
 }
-window.deleteGroupFromModal = function(id) {
+function deleteGroupFromModal(id) {
   const g=state.groups.find(g=>g.id===id), count=state.tasks.filter(t=>t.groupId===id).length;
-  showConfirm(`Gruppe "${g?.name}" löschen?`, count>0?`${count} Aufgabe(n) werden ohne Gruppe fortgeführt.`:'Die Gruppe ist leer.',()=>{
+  showConfirm(`Gruppe "${g?.name}" löschen?`,count>0?`${count} Aufgabe(n) werden ohne Gruppe fortgeführt.`:'Die Gruppe ist leer.',()=>{
     state.groups=state.groups.filter(g=>g.id!==id); state.tasks.forEach(t=>{if(t.groupId===id)t.groupId='';});
-    saveToAPI();render();renderModal();closeColorPopover();
+    saveToAPI(); render(); renderCalendar(); renderModal(); closeColorPopover();
   });
 }
-
-// ── COLOR POPOVER ────────────────────────────────────────────────────────────
-window.openColorPopover = function(groupId, dotEl) {
+function openColorPopover(groupId,dotEl) {
   closeColorPopover();
   const pop=document.createElement('div'); pop.className='color-popover';
   GROUP_COLORS.forEach(c=>{
     const s=document.createElement('div'); s.className='swatch'; s.style.background=c;
-    const g=state.groups.find(g=>g.id===groupId);
-    if(g&&g.color===c)s.classList.add('selected');
-    s.onclick=e=>{e.stopPropagation();if(g){g.color=c;saveToAPI();render();renderModal();}closeColorPopover();};
+    const g=state.groups.find(g=>g.id===groupId); if(g&&g.color===c) s.classList.add('selected');
+    s.addEventListener('click',e=>{ e.stopPropagation(); if(g){g.color=c;saveToAPI();render();renderCalendar();renderModal();} closeColorPopover(); });
     pop.appendChild(s);
   });
   const r=dotEl.getBoundingClientRect(); pop.style.top=(r.bottom+6)+'px'; pop.style.left=Math.max(8,r.left-20)+'px';
   document.body.appendChild(pop); _colorPopover=pop;
   setTimeout(()=>document.addEventListener('click',closeColorPopover,{once:true}),10);
 }
-window.closeColorPopover = function() { if(_colorPopover){_colorPopover.remove();_colorPopover=null;} }
+function closeColorPopover() { if(_colorPopover){_colorPopover.remove();_colorPopover=null;} }
 
-// ── CONFIRM ──────────────────────────────────────────────────────────────────
-function showConfirm(title, msg, onOk) {
+// ── RENDER TASKS ──────────────────────────────────────────────────────────────
+function render() {
+  updateGroupSelect();
+  const hideDone=document.getElementById('hide-done').checked;
+  const overdueOnly=document.getElementById('show-overdue-only').checked;
+  let tasks=state.tasks.filter(t=>{ if(hideDone&&t.done)return false; if(overdueOnly&&deadlineStatus(t.deadline)!=='overdue')return false; return true; });
+  const allOpen=state.tasks.filter(t=>!t.done);
+  const todayEnd=new Date(); todayEnd.setHours(23,59,59,999);
+  document.getElementById('stat-total').textContent=state.tasks.length;
+  document.getElementById('stat-done').textContent=state.tasks.filter(t=>t.done).length;
+  document.getElementById('stat-overdue').textContent=allOpen.filter(t=>t.deadline&&new Date(t.deadline)<new Date()).length;
+  document.getElementById('stat-today').textContent=allOpen.filter(t=>t.deadline&&new Date(t.deadline)<=todayEnd&&new Date(t.deadline)>new Date()).length;
+  const app=document.getElementById('app');
+  const grouped={}; state.groups.forEach(g=>grouped[g.id]=[]); grouped['']=[];
+  tasks.forEach(t=>{ (grouped[t.groupId]!==undefined?grouped[t.groupId]:grouped['']).push(t); });
+  let html='';
+  state.groups.forEach(g=>{
+    const gtasks=grouped[g.id]; if(!gtasks.length&&hideDone) return;
+    html+=`<div class="group"><div class="group-header" data-gid="${g.id}"><div class="group-dot" style="background:${g.color}"></div><div class="group-name-lbl">${esc(g.name)}</div><div class="group-count">${gtasks.length}</div><div class="group-toggle" id="gtoggle-${g.id}">▾</div></div><div class="group-body" id="gbody-${g.id}">${gtasks.length?gtasks.map(t=>taskHTML(t)).join(''):'<div class="empty" style="padding:1.5rem"><div class="empty-icon">✓</div>Alle erledigt</div>'}</div></div>`;
+  });
+  if(grouped[''].length) html+=`<div class="ungrouped"><div class="ungrouped-header">Ohne Gruppe</div>${grouped[''].map(t=>taskHTML(t)).join('')}</div>`;
+  if(!html) html='<div class="empty"><div class="empty-icon">📋</div>Keine Aufgaben vorhanden.</div>';
+  app.innerHTML=html;
+  app.querySelectorAll('.group-header').forEach(hdr=>hdr.addEventListener('click',()=>{
+    const gid=hdr.dataset.gid; document.getElementById('gbody-'+gid).classList.toggle('hidden'); document.getElementById('gtoggle-'+gid).classList.toggle('collapsed');
+  }));
+  app.querySelectorAll('.task-check').forEach(el=>el.addEventListener('click',e=>{ e.stopPropagation(); toggleTask(el.dataset.id); }));
+  app.querySelectorAll('.btn-edit').forEach(el=>el.addEventListener('click',e=>{ e.stopPropagation(); openEditTask(el.dataset.id); }));
+  app.querySelectorAll('[data-del]').forEach(el=>el.addEventListener('click',e=>{ e.stopPropagation(); deleteTask(el.dataset.del); }));
+}
+function taskHTML(t) {
+  const s=deadlineStatus(t.deadline);
+  return `<div class="task ${t.done?'done':''}"><div class="task-check ${t.done?'checked':''}" data-id="${t.id}"></div><div class="task-body"><div class="task-text">${esc(t.text)}</div><div class="task-meta">${t.deadline&&!t.done&&s?`<span class="deadline-badge ${s}">${formatDeadline(t.deadline,s)}</span>`:''} ${t.deadline&&t.done?`<span style="font-size:0.68rem;color:var(--muted)">War: ${formatDateTime(t.deadline)}</span>`:''} ${t.emailNotifSent?'<span class="notif-sent-badge">📧 gesendet</span>':''}</div></div><div class="task-actions"><button class="btn-edit" data-id="${t.id}" title="Bearbeiten">✎</button><button class="btn btn-danger" data-del="${t.id}" title="Löschen">✕</button></div></div>`;
+}
+
+// ── CALENDAR ──────────────────────────────────────────────────────────────────
+function renderCalendar() {
+  if(calYear===undefined) return;
+  document.getElementById('cal-title').textContent=`${MONTH_NAMES[calMonth]} ${calYear}`;
+  const grid=document.getElementById('cal-grid');
+  // keep dow headers, remove day cells
+  const dows=Array.from(grid.querySelectorAll('.cal-dow'));
+  grid.innerHTML=''; dows.forEach(h=>grid.appendChild(h));
+
+  const firstDay=new Date(calYear,calMonth,1);
+  const lastDate=new Date(calYear,calMonth+1,0).getDate();
+  const today=new Date();
+  let startDow=(firstDay.getDay()+6)%7; // Mon=0
+
+  // prev month filler
+  const prevLastDate=new Date(calYear,calMonth,0).getDate();
+  for(let i=startDow-1;i>=0;i--) grid.appendChild(makeDayCell(new Date(calYear,calMonth-1,prevLastDate-i),true,false));
+  // current month
+  for(let d=1;d<=lastDate;d++){
+    const date=new Date(calYear,calMonth,d);
+    grid.appendChild(makeDayCell(date,false,date.toDateString()===today.toDateString()));
+  }
+  // trailing
+  const filled=startDow+lastDate;
+  const trail=(7-(filled%7))%7;
+  for(let d=1;d<=trail;d++) grid.appendChild(makeDayCell(new Date(calYear,calMonth+1,d),true,false));
+}
+
+function makeDayCell(date,otherMonth,isToday) {
+  const cell=document.createElement('div');
+  cell.className='cal-day'+(otherMonth?' other-month':'')+(isToday?' today':'');
+  const numEl=document.createElement('div'); numEl.className='cal-day-num'; numEl.textContent=date.getDate();
+  cell.appendChild(numEl);
+  const dayStr=date.toDateString();
+  const dayTasks=state.tasks.filter(t=>!t.done&&t.deadline&&new Date(t.deadline).toDateString()===dayStr);
+  if(dayTasks.length){
+    const pillWrap=document.createElement('div'); pillWrap.className='cal-pills';
+    const MAX=3;
+    dayTasks.slice(0,MAX).forEach(t=>{
+      const group=state.groups.find(g=>g.id===t.groupId);
+      const color=group?group.color:'#8a8578';
+      const pill=document.createElement('div'); pill.className='cal-pill';
+      pill.style.color=color; pill.style.background=color+'18'; pill.style.borderLeftColor=color;
+      pill.textContent=t.text; pill.title=`${t.text} — ${formatDateTime(t.deadline)}`;
+      pill.addEventListener('click',()=>openEditTask(t.id));
+      pillWrap.appendChild(pill);
+    });
+    if(dayTasks.length>MAX){ const more=document.createElement('div'); more.className='cal-more'; more.textContent=`+${dayTasks.length-MAX} weitere`; pillWrap.appendChild(more); }
+    cell.appendChild(pillWrap);
+    // tooltip
+    cell.addEventListener('mouseenter',e=>{
+      const tip=document.getElementById('cal-tooltip');
+      tip.innerHTML=dayTasks.map(t=>{
+        const g=state.groups.find(g=>g.id===t.groupId); const c=g?g.color:'#8a8578';
+        const s=deadlineStatus(t.deadline);
+        return `<div style="margin-bottom:0.4rem"><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:${c};margin-right:0.4rem;vertical-align:middle"></span><b>${esc(t.text)}</b>${s==='overdue'?' ⚠':''}<br><span style="opacity:0.6;font-size:0.65rem">⏰ ${formatDateTime(t.deadline)}</span></div>`;
+      }).join('');
+      tip.classList.add('show'); moveTooltip(e);
+    });
+    cell.addEventListener('mousemove',moveTooltip);
+    cell.addEventListener('mouseleave',()=>document.getElementById('cal-tooltip').classList.remove('show'));
+  }
+  return cell;
+}
+function moveTooltip(e) {
+  const tip=document.getElementById('cal-tooltip'); const m=12;
+  let x=e.clientX+m, y=e.clientY+m;
+  if(x+220>window.innerWidth) x=e.clientX-220-m;
+  if(y+tip.offsetHeight>window.innerHeight) y=e.clientY-tip.offsetHeight-m;
+  tip.style.left=x+'px'; tip.style.top=y+'px';
+}
+
+// ── EMAILJS + NOTIFICATIONS ───────────────────────────────────────────────────
+async function sendDeadlineEmail(task) {
+  if(!currentUser||!window.emailjs) return;
+  const ds=new Date(task.deadline).toLocaleDateString('de-AT',{weekday:'long',year:'numeric',month:'long',day:'numeric',hour:'2-digit',minute:'2-digit'});
+  try { await window.emailjs.send(EJS_SERVICE_ID,EJS_TEMPLATE_ID,{to_email:currentUser.email,to_name:currentUser.email.split('@')[0],task_text:task.text,deadline_str:ds}); }
+  catch(e){ console.error('EmailJS:',e); }
+}
+async function checkDeadlineEmails() {
+  if(!currentUser) return;
+  const now=Date.now(), WINDOW=12*3600*1000; let dirty=false;
+  for(const t of state.tasks){
+    if(t.done||!t.deadline||t.emailNotifSent) continue;
+    const ms=new Date(t.deadline).getTime();
+    if(ms>now&&ms-now<=WINDOW){ await sendDeadlineEmail(t); t.emailNotifSent=true; dirty=true; }
+  }
+  if(dirty){ await saveToAPI(); render(); }
+}
+function checkNotifications() {
+  const overdue=state.tasks.filter(t=>!t.done&&t.deadline&&new Date(t.deadline)<new Date());
+  if(overdue.length){
+    document.getElementById('notif-msg').textContent=`${overdue.length} Aufgabe(n) überfällig: ${overdue.slice(0,2).map(t=>t.text).join(', ')}${overdue.length>2?'…':''}`;
+    document.getElementById('notif-bar').classList.add('show');
+  }
+}
+
+// ── CONFIRM ───────────────────────────────────────────────────────────────────
+function showConfirm(title,msg,onOk) {
   const ex=document.getElementById('confirm-overlay'); if(ex)ex.remove();
   const o=document.createElement('div'); o.className='confirm-overlay'; o.id='confirm-overlay';
   o.innerHTML=`<div class="confirm-box"><div class="confirm-box-title">${esc(title)}</div><div class="confirm-box-msg">${esc(msg)}</div><div class="confirm-box-actions"><button class="btn-confirm-cancel" id="cc">Abbrechen</button><button class="btn-confirm-delete" id="co">Löschen</button></div></div>`;
   document.body.appendChild(o);
-  document.getElementById('cc').onclick=()=>o.remove();
-  document.getElementById('co').onclick=()=>{o.remove();onOk();};
+  document.getElementById('cc').addEventListener('click',()=>o.remove());
+  document.getElementById('co').addEventListener('click',()=>{o.remove();onOk();});
   o.addEventListener('click',e=>{if(e.target===o)o.remove();});
   setTimeout(()=>document.getElementById('cc')?.focus(),50);
 }
 
-// ── HELPERS ──────────────────────────────────────────────────────────────────
+// ── HELPERS ───────────────────────────────────────────────────────────────────
 function deadlineStatus(d) {
-  if (!d) return '';
-  const diff=(new Date(d)-new Date())/3600000; // Stunden
-  if (diff<0)   return 'overdue';
-  if (diff<=12) return 'alert';
-  if (diff<=48) return 'soon';
-  return 'ok';
-}
-function formatDeadline(d, s) {
-  if (!d) return '';
-  if (s==='overdue') return `Überfällig seit ${formatDateTime(d)}`;
+  if(!d) return '';
   const diff=(new Date(d)-new Date())/3600000;
-  if (s==='alert') return diff<1 ? `⚠ In ${Math.round(diff*60)} Min fällig` : `⚠ In ${Math.round(diff)}h fällig: ${formatTime(d)}`;
+  if(diff<0) return 'overdue'; if(diff<=12) return 'alert'; if(diff<=48) return 'soon'; return 'ok';
+}
+function formatDeadline(d,s) {
+  if(!d) return '';
+  if(s==='overdue') return `Überfällig seit ${formatDateTime(d)}`;
+  const diff=(new Date(d)-new Date())/3600000;
+  if(s==='alert') return diff<1?`⚠ In ${Math.round(diff*60)} Min fällig`:`⚠ In ${Math.round(diff)}h fällig: ${formatTime(d)}`;
   return `Fällig: ${formatDateTime(d)}`;
 }
 function formatDateTime(d) {
-  if (!d) return '';
+  if(!d) return '';
   const dt=new Date(d);
   return dt.toLocaleDateString('de-AT',{year:'numeric',month:'short',day:'numeric'})+', '+dt.toLocaleTimeString('de-AT',{hour:'2-digit',minute:'2-digit'});
 }
-function formatDate(d) { return d ? new Date(d).toLocaleDateString('de-AT',{year:'numeric',month:'short',day:'numeric'}) : ''; }
-function formatTime(d) { return d ? new Date(d).toLocaleTimeString('de-AT',{hour:'2-digit',minute:'2-digit'}) : ''; }
+function formatTime(d) { return d?new Date(d).toLocaleTimeString('de-AT',{hour:'2-digit',minute:'2-digit'}):''; }
 function uid() { return Math.random().toString(36).slice(2)+Date.now().toString(36); }
 function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
