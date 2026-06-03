@@ -131,10 +131,15 @@ header h1 span { color:var(--gold); }
 .section-heading { font-size:0.65rem; letter-spacing:0.15em; text-transform:uppercase; color:var(--muted); margin-bottom:1rem; display:flex; align-items:center; gap:0.75rem; }
 .section-heading::after { content:''; flex:1; height:1px; background:var(--border); }
 .calendar-wrap { background:white; border:1px solid var(--border); border-radius:2px; box-shadow:4px 4px 0 var(--border); overflow:hidden; }
-.cal-header { display:flex; align-items:center; justify-content:space-between; padding:0.9rem 1.2rem; background:var(--ink); color:var(--paper); }
-.cal-title { font-family:'Playfair Display',serif; font-size:1.1rem; font-weight:700; }
-.cal-nav { background:none; border:1px solid rgba(255,255,255,0.2); border-radius:2px; color:var(--paper); font-family:'DM Mono',monospace; font-size:0.75rem; padding:0.3rem 0.7rem; cursor:pointer; transition:all 0.15s; }
-.cal-nav:hover { background:rgba(255,255,255,0.1); }
+.cal-header { display:flex; align-items:center; gap:0.6rem; padding:0.75rem 1.2rem; background:var(--ink); color:var(--paper); flex-wrap:wrap; }
+.cal-title { font-family:'Playfair Display',serif; font-size:1.1rem; font-weight:700; flex:1; min-width:120px; }
+.cal-nav { background:none; border:1px solid rgba(255,255,255,0.2); border-radius:2px; color:var(--paper); font-family:'DM Mono',monospace; font-size:0.8rem; padding:0.3rem 0.65rem; cursor:pointer; transition:all 0.15s; }
+.cal-nav:hover { background:rgba(255,255,255,0.15); }
+.cal-view-btns { display:flex; gap:0.3rem; margin-left:auto; }
+.cal-view-btn { font-family:'DM Mono',monospace; font-size:0.65rem; letter-spacing:0.08em; text-transform:uppercase; background:rgba(255,255,255,0.08); color:rgba(255,255,255,0.6); border:1px solid rgba(255,255,255,0.15); border-radius:2px; padding:0.3rem 0.65rem; cursor:pointer; transition:all 0.15s; }
+.cal-view-btn:hover { background:rgba(255,255,255,0.15); color:var(--paper); }
+.cal-view-btn.active { background:var(--gold); color:var(--ink); border-color:var(--gold); font-weight:700; }
+/* MONTH VIEW */
 .cal-grid { display:grid; grid-template-columns:repeat(7,1fr); }
 .cal-dow { padding:0.5rem 0; text-align:center; font-size:0.6rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--muted); background:var(--cream); border-bottom:1px solid var(--border); }
 .cal-day { min-height:72px; padding:0.4rem 0.45rem; border-right:1px solid var(--cream); border-bottom:1px solid var(--cream); position:relative; cursor:default; transition:background 0.15s; }
@@ -148,8 +153,37 @@ header h1 span { color:var(--gold); }
 .cal-pill { font-size:0.58rem; padding:0.1rem 0.3rem; border-radius:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; cursor:pointer; line-height:1.4; border-left:2px solid currentColor; }
 .cal-pill:hover { opacity:0.75; }
 .cal-more { font-size:0.58rem; color:var(--muted); padding:0.1rem 0.3rem; }
+/* YEAR VIEW */
+.cal-year-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:1px; background:var(--border); }
+.cal-mini-month { background:white; padding:0.7rem 0.6rem; cursor:pointer; transition:background 0.15s; }
+.cal-mini-month:hover { background:rgba(200,168,75,0.08); }
+.cal-mini-title { font-family:'Playfair Display',serif; font-size:0.8rem; font-weight:700; margin-bottom:0.4rem; }
+.cal-mini-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:1px; }
+.cal-mini-cell { width:100%; aspect-ratio:1; display:flex; align-items:center; justify-content:center; font-size:0.5rem; color:var(--muted); border-radius:50%; position:relative; }
+.cal-mini-cell.today { background:var(--gold); color:var(--ink); font-weight:700; }
+.cal-mini-cell.has-task::after { content:''; position:absolute; bottom:1px; left:50%; transform:translateX(-50%); width:3px; height:3px; border-radius:50%; background:var(--rust); }
+.cal-mini-cell.today.has-task::after { background:var(--ink); }
+.cal-year-task-count { font-size:0.6rem; color:var(--muted); margin-top:0.35rem; letter-spacing:0.05em; }
+/* DAY VIEW */
+.cal-day-view { display:flex; flex-direction:column; }
+.cal-day-nav { display:flex; align-items:center; justify-content:center; gap:1rem; padding:0.6rem 1.2rem; background:var(--cream); border-bottom:1px solid var(--border); font-size:0.8rem; color:var(--muted); }
+.cal-day-nav-date { font-family:'Playfair Display',serif; font-size:1rem; font-weight:700; color:var(--ink); }
+.cal-timeline { display:flex; overflow-y:auto; max-height:520px; }
+.cal-time-col { width:52px; flex-shrink:0; border-right:1px solid var(--border); background:var(--cream); }
+.cal-time-slot { height:60px; display:flex; align-items:flex-start; justify-content:flex-end; padding:4px 6px 0 0; font-size:0.58rem; color:var(--muted); letter-spacing:0.05em; border-bottom:1px solid var(--border); box-sizing:border-box; }
+.cal-events-col { flex:1; position:relative; min-height:1440px; }
+.cal-hour-line { position:absolute; left:0; right:0; border-top:1px solid var(--cream); pointer-events:none; }
+.cal-hour-line.half { border-top:1px dashed var(--border); opacity:0.5; }
+.cal-event { position:absolute; left:4px; right:4px; border-radius:2px; padding:3px 6px; font-size:0.65rem; line-height:1.4; overflow:hidden; cursor:pointer; border-left:3px solid currentColor; transition:opacity 0.15s; }
+.cal-event:hover { opacity:0.8; }
+.cal-event-title { font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.cal-event-time { opacity:0.7; font-size:0.58rem; }
+.cal-now-line { position:absolute; left:0; right:0; height:2px; background:var(--rust); z-index:10; pointer-events:none; }
+.cal-now-dot { position:absolute; left:-4px; top:-4px; width:10px; height:10px; border-radius:50%; background:var(--rust); }
+/* TOOLTIP */
 .cal-tooltip { position:fixed; background:var(--ink); color:var(--paper); font-size:0.72rem; padding:0.6rem 0.9rem; border-radius:3px; box-shadow:4px 4px 0 rgba(0,0,0,0.25); z-index:800; pointer-events:none; max-width:220px; line-height:1.6; display:none; border-left:3px solid var(--gold); }
 .cal-tooltip.show { display:block; }
+@media(max-width:600px){ .cal-year-grid{grid-template-columns:repeat(2,1fr);} .cal-view-btns{margin-left:0;width:100%;} }
 
 /* MODALS */
 .modal-overlay { position:fixed; inset:0; background:rgba(26,26,24,0.55); backdrop-filter:blur(2px); z-index:500; display:flex; align-items:center; justify-content:center; padding:1rem; opacity:0; pointer-events:none; transition:opacity 0.2s; }
@@ -280,25 +314,27 @@ header h1 span { color:var(--gold); }
     <button class="manage-groups-btn" id="btn-open-modal">⊞ Gruppen verwalten</button>
   </div>
 
-  <!-- CALENDAR -->
-  <div class="cal-section">
-    <div class="section-heading">Kalender</div>
-    <div class="calendar-wrap">
-      <div class="cal-header">
-        <button class="cal-nav" id="cal-prev">‹ Zurück</button>
-        <div class="cal-title" id="cal-title"></div>
-        <button class="cal-nav" id="cal-next">Weiter ›</button>
-      </div>
-      <div class="cal-grid" id="cal-grid">
-        <div class="cal-dow">Mo</div><div class="cal-dow">Di</div><div class="cal-dow">Mi</div>
-        <div class="cal-dow">Do</div><div class="cal-dow">Fr</div><div class="cal-dow">Sa</div><div class="cal-dow">So</div>
-      </div>
-    </div>
-  </div>
-
   <!-- TASKS -->
   <div class="section-heading">Aufgaben</div>
   <div id="app" style="margin-top:1rem;"></div>
+
+  <!-- CALENDAR -->
+  <div class="cal-section" style="margin-top:2.5rem;">
+    <div class="section-heading">Kalender</div>
+    <div class="calendar-wrap">
+      <div class="cal-header">
+        <button class="cal-nav" id="cal-prev">‹</button>
+        <div class="cal-title" id="cal-title"></div>
+        <button class="cal-nav" id="cal-next">›</button>
+        <div class="cal-view-btns">
+          <button class="cal-view-btn active" data-view="month">Monat</button>
+          <button class="cal-view-btn" data-view="year">Jahr</button>
+          <button class="cal-view-btn" data-view="day">Tag</button>
+        </div>
+      </div>
+      <div id="cal-body"></div>
+    </div>
+  </div>
 </div>
 </div>
 
@@ -364,7 +400,7 @@ let _editingTaskId = null;
 let _colorPopover = null;
 let _pendingVerifUser = null;
 let selectedColor = GROUP_COLORS[0];
-let calYear, calMonth;
+let calYear, calMonth, calDay, calView="month";
 
 // ── SAVE / LOAD ───────────────────────────────────────────────────────────────
 async function saveToAPI() {
@@ -406,9 +442,17 @@ function initApp() {
   document.getElementById('show-overdue-only').addEventListener('change', render);
   document.getElementById('task-input').addEventListener('keydown', e=>{ if(e.key==='Enter') addTask(); });
   document.getElementById('group-name-input').addEventListener('keydown', e=>{ if(e.key==='Enter') createGroup(); });
-  // Calendar nav
-  document.getElementById('cal-prev').addEventListener('click', ()=>{ calMonth--; if(calMonth<0){calMonth=11;calYear--;} renderCalendar(); });
-  document.getElementById('cal-next').addEventListener('click', ()=>{ calMonth++; if(calMonth>11){calMonth=0;calYear++;} renderCalendar(); });
+  // Calendar nav & view
+  document.getElementById('cal-prev').addEventListener('click', calPrev);
+  document.getElementById('cal-next').addEventListener('click', calNext);
+  document.querySelectorAll('.cal-view-btn').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      document.querySelectorAll('.cal-view-btn').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      calView=btn.dataset.view;
+      renderCalendar();
+    });
+  });
   // Global keys
   document.addEventListener('keydown', e=>{
     if(e.key==='Enter'&&document.getElementById('login-screen').style.display==='flex') submitAuth();
@@ -449,7 +493,7 @@ function showAppScreen(user) {
   document.getElementById('app-screen').style.display='block';
   document.getElementById('user-display').textContent=user.email.split('@')[0];
   document.getElementById('today-display').innerHTML=new Date().toLocaleDateString('de-AT',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
-  const now=new Date(); calYear=now.getFullYear(); calMonth=now.getMonth();
+  const now=new Date(); calYear=now.getFullYear(); calMonth=now.getMonth(); calDay=now.getDate();
   setInterval(()=>{ checkDeadlineEmails(); checkNotifications(); }, 30*60*1000);
 }
 
@@ -639,68 +683,211 @@ function taskHTML(t) {
 }
 
 // ── CALENDAR ──────────────────────────────────────────────────────────────────
+function calPrev() {
+  if(calView==='month'){ calMonth--; if(calMonth<0){calMonth=11;calYear--;} }
+  else if(calView==='year'){ calYear--; }
+  else if(calView==='day'){ const d=new Date(calYear,calMonth,calDay-1); calYear=d.getFullYear(); calMonth=d.getMonth(); calDay=d.getDate(); }
+  renderCalendar();
+}
+function calNext() {
+  if(calView==='month'){ calMonth++; if(calMonth>11){calMonth=0;calYear++;} }
+  else if(calView==='year'){ calYear++; }
+  else if(calView==='day'){ const d=new Date(calYear,calMonth,calDay+1); calYear=d.getFullYear(); calMonth=d.getMonth(); calDay=d.getDate(); }
+  renderCalendar();
+}
+
 function renderCalendar() {
   if(calYear===undefined) return;
-  document.getElementById('cal-title').textContent=`${MONTH_NAMES[calMonth]} ${calYear}`;
-  const grid=document.getElementById('cal-grid');
-  // keep dow headers, remove day cells
-  const dows=Array.from(grid.querySelectorAll('.cal-dow'));
-  grid.innerHTML=''; dows.forEach(h=>grid.appendChild(h));
+  const body=document.getElementById('cal-body');
+  if(calView==='month')      renderCalMonth(body);
+  else if(calView==='year')  renderCalYear(body);
+  else if(calView==='day')   renderCalDay(body);
+}
 
+// ── MONTH VIEW ────────────────────────────────────────────────────────────────
+function renderCalMonth(body) {
+  document.getElementById('cal-title').textContent=`${MONTH_NAMES[calMonth]} ${calYear}`;
+  const dowRow=['Mo','Di','Mi','Do','Fr','Sa','So'].map(d=>`<div class="cal-dow">${d}</div>`).join('');
+  let gridHTML=`<div class="cal-grid">${dowRow}`;
   const firstDay=new Date(calYear,calMonth,1);
   const lastDate=new Date(calYear,calMonth+1,0).getDate();
   const today=new Date();
-  let startDow=(firstDay.getDay()+6)%7; // Mon=0
-
-  // prev month filler
-  const prevLastDate=new Date(calYear,calMonth,0).getDate();
-  for(let i=startDow-1;i>=0;i--) grid.appendChild(makeDayCell(new Date(calYear,calMonth-1,prevLastDate-i),true,false));
-  // current month
-  for(let d=1;d<=lastDate;d++){
-    const date=new Date(calYear,calMonth,d);
-    grid.appendChild(makeDayCell(date,false,date.toDateString()===today.toDateString()));
-  }
-  // trailing
-  const filled=startDow+lastDate;
-  const trail=(7-(filled%7))%7;
-  for(let d=1;d<=trail;d++) grid.appendChild(makeDayCell(new Date(calYear,calMonth+1,d),true,false));
-}
-
-function makeDayCell(date,otherMonth,isToday) {
-  const cell=document.createElement('div');
-  cell.className='cal-day'+(otherMonth?' other-month':'')+(isToday?' today':'');
-  const numEl=document.createElement('div'); numEl.className='cal-day-num'; numEl.textContent=date.getDate();
-  cell.appendChild(numEl);
-  const dayStr=date.toDateString();
-  const dayTasks=state.tasks.filter(t=>!t.done&&t.deadline&&new Date(t.deadline).toDateString()===dayStr);
-  if(dayTasks.length){
-    const pillWrap=document.createElement('div'); pillWrap.className='cal-pills';
-    const MAX=3;
-    dayTasks.slice(0,MAX).forEach(t=>{
-      const group=state.groups.find(g=>g.id===t.groupId);
-      const color=group?group.color:'#8a8578';
-      const pill=document.createElement('div'); pill.className='cal-pill';
-      pill.style.color=color; pill.style.background=color+'18'; pill.style.borderLeftColor=color;
-      pill.textContent=t.text; pill.title=`${t.text} — ${formatDateTime(t.deadline)}`;
-      pill.addEventListener('click',()=>openEditTask(t.id));
-      pillWrap.appendChild(pill);
-    });
-    if(dayTasks.length>MAX){ const more=document.createElement('div'); more.className='cal-more'; more.textContent=`+${dayTasks.length-MAX} weitere`; pillWrap.appendChild(more); }
-    cell.appendChild(pillWrap);
-    // tooltip
-    cell.addEventListener('mouseenter',e=>{
-      const tip=document.getElementById('cal-tooltip');
-      tip.innerHTML=dayTasks.map(t=>{
-        const g=state.groups.find(g=>g.id===t.groupId); const c=g?g.color:'#8a8578';
-        const s=deadlineStatus(t.deadline);
-        return `<div style="margin-bottom:0.4rem"><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:${c};margin-right:0.4rem;vertical-align:middle"></span><b>${esc(t.text)}</b>${s==='overdue'?' ⚠':''}<br><span style="opacity:0.6;font-size:0.65rem">⏰ ${formatDateTime(t.deadline)}</span></div>`;
-      }).join('');
-      tip.classList.add('show'); moveTooltip(e);
-    });
+  const todayStr=today.toDateString();
+  let startDow=(firstDay.getDay()+6)%7;
+  const prevLast=new Date(calYear,calMonth,0).getDate();
+  for(let i=startDow-1;i>=0;i--) gridHTML+=makeDayCellHTML(new Date(calYear,calMonth-1,prevLast-i),true);
+  for(let d=1;d<=lastDate;d++) gridHTML+=makeDayCellHTML(new Date(calYear,calMonth,d),false);
+  const filled=startDow+lastDate; const trail=(7-(filled%7))%7;
+  for(let d=1;d<=trail;d++) gridHTML+=makeDayCellHTML(new Date(calYear,calMonth+1,d),true);
+  gridHTML+='</div>';
+  body.innerHTML=gridHTML;
+  // bind pill clicks and tooltip
+  body.querySelectorAll('.cal-pill[data-tid]').forEach(el=>{
+    el.addEventListener('click',e=>{e.stopPropagation();openEditTask(el.dataset.tid);});
+  });
+  body.querySelectorAll('.cal-day[data-date]').forEach(cell=>{
+    const dayTasks=JSON.parse(cell.dataset.tasks||'[]');
+    if(!dayTasks.length) return;
+    cell.addEventListener('mouseenter',e=>{ showCalTooltip(dayTasks,e); });
     cell.addEventListener('mousemove',moveTooltip);
     cell.addEventListener('mouseleave',()=>document.getElementById('cal-tooltip').classList.remove('show'));
+  });
+  // click day → switch to day view
+  body.querySelectorAll('.cal-day:not(.other-month)').forEach(cell=>{
+    cell.style.cursor='pointer';
+    cell.addEventListener('click',e=>{
+      if(e.target.classList.contains('cal-pill')) return;
+      const [y,m,d]=cell.dataset.date.split('-').map(Number);
+      calYear=y; calMonth=m; calDay=d;
+      calView='day';
+      document.querySelectorAll('.cal-view-btn').forEach(b=>b.classList.toggle('active',b.dataset.view==='day'));
+      renderCalendar();
+    });
+  });
+}
+
+function makeDayCellHTML(date,otherMonth) {
+  const today=new Date();
+  const isToday=date.toDateString()===today.toDateString();
+  const dayStr=date.toDateString();
+  const dayTasks=state.tasks.filter(t=>!t.done&&t.deadline&&new Date(t.deadline).toDateString()===dayStr);
+  const dateKey=`${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
+  const taskMeta=JSON.stringify(dayTasks.map(t=>t.id));
+  let cls='cal-day'+(otherMonth?' other-month':'')+(isToday?' today':'');
+  let inner=`<div class="cal-day-num">${date.getDate()}</div>`;
+  if(dayTasks.length){
+    inner+='<div class="cal-pills">';
+    const MAX=3;
+    dayTasks.slice(0,MAX).forEach(t=>{
+      const g=state.groups.find(g=>g.id===t.groupId); const c=g?g.color:'#8a8578';
+      inner+=`<div class="cal-pill" style="color:${c};background:${c}18;border-left-color:${c}" data-tid="${t.id}">${esc(t.text)}</div>`;
+    });
+    if(dayTasks.length>MAX) inner+=`<div class="cal-more">+${dayTasks.length-MAX} weitere</div>`;
+    inner+='</div>';
   }
-  return cell;
+  return `<div class="${cls}" data-date="${dateKey}" data-tasks='${JSON.stringify(dayTasks.map(t=>t.id))}'>${inner}</div>`;
+}
+
+// ── YEAR VIEW ─────────────────────────────────────────────────────────────────
+function renderCalYear(body) {
+  document.getElementById('cal-title').textContent=`${calYear}`;
+  const today=new Date();
+  let html='<div class="cal-year-grid">';
+  for(let m=0;m<12;m++){
+    const firstDay=new Date(calYear,m,1);
+    const lastDate=new Date(calYear,m+1,0).getDate();
+    let startDow=(firstDay.getDay()+6)%7;
+    const taskCount=state.tasks.filter(t=>!t.done&&t.deadline&&new Date(t.deadline).getFullYear()===calYear&&new Date(t.deadline).getMonth()===m).length;
+    html+=`<div class="cal-mini-month" data-month="${m}"><div class="cal-mini-title">${MONTH_NAMES[m].slice(0,3)}</div><div class="cal-mini-grid">`;
+    // empty leading cells
+    for(let i=0;i<startDow;i++) html+=`<div class="cal-mini-cell"></div>`;
+    for(let d=1;d<=lastDate;d++){
+      const date=new Date(calYear,m,d);
+      const isToday=date.toDateString()===today.toDateString();
+      const hasTask=state.tasks.some(t=>!t.done&&t.deadline&&new Date(t.deadline).toDateString()===date.toDateString());
+      html+=`<div class="cal-mini-cell${isToday?' today':''}${hasTask?' has-task':''}">${d}</div>`;
+    }
+    html+=`</div>`;
+    if(taskCount) html+=`<div class="cal-year-task-count">${taskCount} Aufgabe${taskCount!==1?'n':''}</div>`;
+    html+=`</div>`;
+  }
+  html+='</div>';
+  body.innerHTML=html;
+  body.querySelectorAll('.cal-mini-month').forEach(el=>{
+    el.addEventListener('click',()=>{
+      calMonth=parseInt(el.dataset.month); calView='month';
+      document.querySelectorAll('.cal-view-btn').forEach(b=>b.classList.toggle('active',b.dataset.view==='month'));
+      renderCalendar();
+    });
+  });
+}
+
+// ── DAY VIEW ──────────────────────────────────────────────────────────────────
+function renderCalDay(body) {
+  const dateObj=new Date(calYear,calMonth,calDay);
+  const dow=['Sonntag','Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag'][dateObj.getDay()];
+  document.getElementById('cal-title').textContent=`${dow}, ${calDay}. ${MONTH_NAMES[calMonth]} ${calYear}`;
+  const today=new Date();
+  const isToday=dateObj.toDateString()===today.toDateString();
+  const dayStr=dateObj.toDateString();
+  const dayTasks=state.tasks.filter(t=>!t.done&&t.deadline&&new Date(t.deadline).toDateString()===dayStr);
+
+  // Build timeline HTML
+  let timeCells='', hourLines='';
+  for(let h=0;h<24;h++){
+    const label=h.toString().padStart(2,'0')+':00';
+    timeCells+=`<div class="cal-time-slot">${label}</div>`;
+    // half-hour line
+    timeCells+=`<div class="cal-time-slot" style="border-bottom:1px dashed var(--border);opacity:0.5;"></div>`;
+    hourLines+=`<div class="cal-hour-line" style="top:${h*60}px"></div>`;
+    hourLines+=`<div class="cal-hour-line half" style="top:${h*60+30}px"></div>`;
+  }
+
+  body.innerHTML=`<div class="cal-day-view">
+    <div class="cal-timeline">
+      <div class="cal-time-col" id="cal-time-col"></div>
+      <div class="cal-events-col" id="cal-events-col">${hourLines}</div>
+    </div>
+  </div>`;
+
+  const timeCol=body.querySelector('#cal-time-col');
+  const eventsCol=body.querySelector('#cal-events-col');
+
+  // Render time slots
+  for(let h=0;h<24;h++){
+    const s1=document.createElement('div'); s1.className='cal-time-slot'; s1.textContent=h.toString().padStart(2,'0')+':00'; timeCol.appendChild(s1);
+    const s2=document.createElement('div'); s2.className='cal-time-slot'; s2.style.borderBottom='1px dashed var(--border)'; s2.style.opacity='0.5'; timeCol.appendChild(s2);
+  }
+
+  // "Now" line
+  if(isToday){
+    const nowMins=today.getHours()*60+today.getMinutes();
+    const line=document.createElement('div'); line.className='cal-now-line'; line.style.top=nowMins+'px';
+    const dot=document.createElement('div'); dot.className='cal-now-dot'; line.appendChild(dot);
+    eventsCol.appendChild(line);
+  }
+
+  // Render task events — simple overlap detection
+  const sorted=[...dayTasks].sort((a,b)=>new Date(a.deadline)-new Date(b.deadline));
+  sorted.forEach(t=>{
+    const dt=new Date(t.deadline);
+    const topMin=dt.getHours()*60+dt.getMinutes();
+    const height=40; // px height of event block
+    const g=state.groups.find(g=>g.id===t.groupId); const c=g?g.color:'#8a8578';
+    const s=deadlineStatus(t.deadline);
+    const ev=document.createElement('div'); ev.className='cal-event';
+    ev.style.top=(topMin-20)+'px'; // center on deadline minute
+    ev.style.height=height+'px';
+    ev.style.color=c; ev.style.background=c+'18'; ev.style.borderLeftColor=c;
+    if(s==='overdue') ev.style.opacity='0.6';
+    ev.innerHTML=`<div class="cal-event-title">${esc(t.text)}</div><div class="cal-event-time">⏰ ${formatTime(t.deadline)}</div>`;
+    ev.addEventListener('click',()=>openEditTask(t.id));
+    eventsCol.appendChild(ev);
+  });
+
+  // Empty state
+  if(!dayTasks.length){
+    const empty=document.createElement('div');
+    empty.style.cssText='position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:var(--muted);font-size:0.8rem;text-align:center;pointer-events:none;';
+    empty.textContent='Keine Aufgaben an diesem Tag';
+    eventsCol.appendChild(empty);
+  }
+
+  // Scroll to 7:00 or first task
+  const scrollTo=dayTasks.length?Math.max(0,new Date(sorted[0].deadline).getHours()*60-60):7*60;
+  requestAnimationFrame(()=>{ body.querySelector('.cal-timeline').scrollTop=scrollTo; });
+}
+
+function showCalTooltip(taskIds,e) {
+  const tasks=taskIds.map(id=>state.tasks.find(t=>t.id===id)).filter(Boolean);
+  if(!tasks.length) return;
+  const tip=document.getElementById('cal-tooltip');
+  tip.innerHTML=tasks.map(t=>{
+    const g=state.groups.find(g=>g.id===t.groupId); const c=g?g.color:'#8a8578';
+    const s=deadlineStatus(t.deadline);
+    return `<div style="margin-bottom:0.4rem"><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:${c};margin-right:0.4rem;vertical-align:middle"></span><b>${esc(t.text)}</b>${s==='overdue'?' ⚠':''}<br><span style="opacity:0.6;font-size:0.65rem">⏰ ${formatDateTime(t.deadline)}</span></div>`;
+  }).join('');
+  tip.classList.add('show'); moveTooltip(e);
 }
 function moveTooltip(e) {
   const tip=document.getElementById('cal-tooltip'); const m=12;
