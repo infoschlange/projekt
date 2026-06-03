@@ -812,51 +812,41 @@ function renderCalDay(body) {
   const dayStr=dateObj.toDateString();
   const dayTasks=state.tasks.filter(t=>!t.done&&t.deadline&&new Date(t.deadline).toDateString()===dayStr);
 
-  // Build timeline HTML
-  let timeCells='', hourLines='';
-  for(let h=0;h<24;h++){
-    const label=h.toString().padStart(2,'0')+':00';
-    timeCells+=`<div class="cal-time-slot">${label}</div>`;
-    // half-hour line
-    timeCells+=`<div class="cal-time-slot" style="border-bottom:1px dashed var(--border);opacity:0.5;"></div>`;
-    hourLines+=`<div class="cal-hour-line" style="top:${h*60}px"></div>`;
-    hourLines+=`<div class="cal-hour-line half" style="top:${h*60+30}px"></div>`;
-  }
+  // 1 Stunde = 2 Slots à 60px = 120px → 1 Minute = 2px
+  const PX_PER_MIN = 2;
+  const TOTAL_H = 24 * 60 * PX_PER_MIN; // 2880px
 
-  body.innerHTML=`<div class="cal-day-view">
-    <div class="cal-timeline">
-      <div class="cal-time-col" id="cal-time-col"></div>
-      <div class="cal-events-col" id="cal-events-col">${hourLines}</div>
-    </div>
-  </div>`;
+  body.innerHTML=`<div class="cal-day-view"><div class="cal-timeline"><div class="cal-time-col" id="cal-time-col"></div><div class="cal-events-col" id="cal-events-col" style="min-height:${TOTAL_H}px;position:relative;"></div></div></div>`;
 
   const timeCol=body.querySelector('#cal-time-col');
   const eventsCol=body.querySelector('#cal-events-col');
 
-  // Render time slots
+  // Render time slots + hour/half-hour lines
   for(let h=0;h<24;h++){
     const s1=document.createElement('div'); s1.className='cal-time-slot'; s1.textContent=h.toString().padStart(2,'0')+':00'; timeCol.appendChild(s1);
     const s2=document.createElement('div'); s2.className='cal-time-slot'; s2.style.borderBottom='1px dashed var(--border)'; s2.style.opacity='0.5'; timeCol.appendChild(s2);
+    const l1=document.createElement('div'); l1.className='cal-hour-line'; l1.style.top=(h*60*PX_PER_MIN)+'px'; eventsCol.appendChild(l1);
+    const l2=document.createElement('div'); l2.className='cal-hour-line half'; l2.style.top=(h*60*PX_PER_MIN+30*PX_PER_MIN)+'px'; eventsCol.appendChild(l2);
   }
 
   // "Now" line
   if(isToday){
     const nowMins=today.getHours()*60+today.getMinutes();
-    const line=document.createElement('div'); line.className='cal-now-line'; line.style.top=nowMins+'px';
+    const line=document.createElement('div'); line.className='cal-now-line'; line.style.top=(nowMins*PX_PER_MIN)+'px';
     const dot=document.createElement('div'); dot.className='cal-now-dot'; line.appendChild(dot);
     eventsCol.appendChild(line);
   }
 
-  // Render task events — simple overlap detection
+  // Render task events
   const sorted=[...dayTasks].sort((a,b)=>new Date(a.deadline)-new Date(b.deadline));
   sorted.forEach(t=>{
     const dt=new Date(t.deadline);
     const topMin=dt.getHours()*60+dt.getMinutes();
-    const height=40; // px height of event block
+    const height=44;
     const g=state.groups.find(g=>g.id===t.groupId); const c=g?g.color:'#8a8578';
     const s=deadlineStatus(t.deadline);
     const ev=document.createElement('div'); ev.className='cal-event';
-    ev.style.top=(topMin-20)+'px'; // center on deadline minute
+    ev.style.top=Math.max(0, topMin*PX_PER_MIN - height/2)+'px';
     ev.style.height=height+'px';
     ev.style.color=c; ev.style.background=c+'18'; ev.style.borderLeftColor=c;
     if(s==='overdue') ev.style.opacity='0.6';
@@ -874,7 +864,7 @@ function renderCalDay(body) {
   }
 
   // Scroll to 7:00 or first task
-  const scrollTo=dayTasks.length?Math.max(0,new Date(sorted[0].deadline).getHours()*60-60):7*60;
+  const scrollTo=dayTasks.length?Math.max(0,(new Date(sorted[0].deadline).getHours()*60-60)*PX_PER_MIN):7*60*PX_PER_MIN;
   requestAnimationFrame(()=>{ body.querySelector('.cal-timeline').scrollTop=scrollTo; });
 }
 
@@ -910,7 +900,9 @@ async function checkDeadlineEmails() {
   for(const t of state.tasks){
     if(t.done||!t.deadline||t.emailNotifSent) continue;
     const ms=new Date(t.deadline).getTime();
-    if(ms>now&&ms-now<=WINDOW){ await sendDeadlineEmail(t); t.emailNotifSent=true; dirty=true; }
+    // Sende Mail wenn Deadline innerhalb der nächsten 12h liegt
+    // ODER bereits vergangen aber noch nicht gesendet (verpasste Deadline)
+    if(ms-now<=WINDOW){ await sendDeadlineEmail(t); t.emailNotifSent=true; dirty=true; }
   }
   if(dirty){ await saveToAPI(); render(); }
 }
