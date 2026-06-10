@@ -35,9 +35,9 @@ body { font-family: 'DM Mono', monospace; background: var(--paper); color: var(-
 .resend-link.show { display:block; }
 .forgot-link { font-size:0.68rem; color:var(--muted); cursor:pointer; text-decoration:underline; text-underline-offset:2px; margin-top:0.4rem; text-align:center; }
 .forgot-link:hover { color:var(--gold); }
-.ad-banner { display:block; background:var(--ink); color:var(--gold); font-family:'DM Mono',monospace; font-size:0.72rem; letter-spacing:0.05em; text-align:center; padding:0.55rem 1rem; text-decoration:none; border-bottom:2px solid var(--gold); transition:background 0.15s; position:relative; }
-.ad-banner:hover { background:#2e2e2a; color:var(--gold-light); }
-.ad-banner strong { color:white; }
+.ad-banner { display:block; background:var(--gold); color:var(--ink); font-family:'DM Mono',monospace; font-size:0.72rem; letter-spacing:0.05em; text-align:center; padding:0.6rem 1rem; text-decoration:none; transition:background 0.15s; position:relative; }
+.ad-banner:hover { background:var(--gold-light); color:var(--ink); }
+.ad-banner strong { color:var(--ink); font-weight:700; }
 .ad-banner-app { border-radius:2px; border:1px solid var(--gold); border-left:3px solid var(--gold); margin-bottom:1.5rem; background:rgba(200,168,75,0.06); color:var(--ink); }
 .ad-banner-app:hover { background:rgba(200,168,75,0.12); color:var(--ink); }
 .ad-banner-app strong { color:var(--gold); }
