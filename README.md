@@ -50,3 +50,6 @@ Da es sich um eine reine HTML/CSS/JS-Anwendung handelt, ist kein Build-Schritt n
 ## Autor
 
 Hüseyin Güdücü
+
+---
+*Zuletzt aktualisiert: Juni 2026*
