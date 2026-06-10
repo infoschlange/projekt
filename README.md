@@ -14,6 +14,8 @@ Das Projekt ermöglicht das Erstellen, Verwalten und Organisieren von Aufgaben m
 |---|---|
 | `index.html` | Vollständige Webanwendung (HTML + JavaScript) |
 | `styles.css` | Alle CSS-Stile der Anwendung (ausgelagert aus `index.html`) |
+| `manifest.json` | PWA-Manifest für App-Installation |
+| `sw.js` | Service Worker für Offline-Unterstützung |
 | `README.md` | Projektdokumentation |
 
 ## Verwendete Technologien
@@ -28,8 +30,12 @@ Das Projekt ermöglicht das Erstellen, Verwalten und Organisieren von Aufgaben m
 - Aufgaben erstellen mit Deadline (Datum + Uhrzeit)
 - Gruppen/Kategorien mit individueller Farbkodierung
 - Deadline-Statusanzeigen und Statistiken
-- Kalenderansicht (Monat, Woche, Tag)
+- Kalenderansicht (Monat, Jahr, Tag)
 - E-Mail-Benachrichtigungen bei nahenden Fristen
+- Live-Suche zum schnellen Filtern von Aufgaben
+- Tastaturkürzel: `N` Neue Aufgabe · `G` Gruppen · `/` Suche · `Esc` Schließen
+- PWA-fähig: Als App installierbar, funktioniert offline
+- Passwort-Zurücksetzen per E-Mail
 
 ## Voraussetzungen
 
