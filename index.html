@@ -4,6 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Meine Aufgaben</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#1a1a18">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Meine Aufgaben">
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css">
@@ -33,6 +38,7 @@
       <div class="login-field" id="register-confirm-field" style="display:none;"><label>Passwort bestätigen</label><input type="password" id="auth-password2" autocomplete="new-password" placeholder="••••••••" /></div>
       <button class="btn-login" id="auth-submit-btn">Anmelden</button>
       <div class="resend-link" id="resend-link">↻ Bestätigungs-E-Mail erneut senden</div>
+      <div class="forgot-link" id="forgot-link">Passwort vergessen?</div>
       <div class="login-hint" id="login-hint">Noch kein Konto? Wechsle zum Tab „Registrieren".</div>
     </div>
   </div>
@@ -78,6 +84,11 @@
         </div>
       </div>
     </details>
+  </div>
+
+  <div class="search-bar">
+    <input type="text" id="search-input" placeholder="🔍  Aufgaben durchsuchen …" autocomplete="off" />
+    <div class="kbd-hint"><kbd>N</kbd> Neue Aufgabe &nbsp;·&nbsp; <kbd>G</kbd> Gruppen &nbsp;·&nbsp; <kbd>Esc</kbd> Schließen</div>
   </div>
 
   <div class="filter-bar">
@@ -143,7 +154,7 @@
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, sendEmailVerification } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, sendEmailVerification, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -198,6 +209,7 @@ function initApp() {
   document.getElementById('tab-register').addEventListener('click', ()=>switchTab('register'));
   document.getElementById('auth-submit-btn').addEventListener('click', submitAuth);
   document.getElementById('resend-link').addEventListener('click', resendVerification);
+  document.getElementById('forgot-link').addEventListener('click', resetPassword);
   // App buttons
   document.getElementById('btn-logout').addEventListener('click', logout);
   document.getElementById('btn-add-task').addEventListener('click', addTask);
@@ -212,6 +224,7 @@ function initApp() {
   document.getElementById('btn-close-notif').addEventListener('click', ()=>document.getElementById('notif-bar').classList.remove('show'));
   document.getElementById('hide-done').addEventListener('change', render);
   document.getElementById('show-overdue-only').addEventListener('change', render);
+  document.getElementById('search-input').addEventListener('input', render);
   document.getElementById('task-input').addEventListener('keydown', e=>{ if(e.key==='Enter') addTask(); });
   document.getElementById('group-name-input').addEventListener('keydown', e=>{ if(e.key==='Enter') createGroup(); });
   // Calendar nav & view
@@ -229,6 +242,13 @@ function initApp() {
   document.addEventListener('keydown', e=>{
     if(e.key==='Enter'&&document.getElementById('login-screen').style.display==='flex') submitAuth();
     if(e.key==='Escape'){ closeModal(); closeEditTask(); }
+    const active=document.activeElement, tag=active?.tagName;
+    const typing=tag==='INPUT'||tag==='TEXTAREA'||tag==='SELECT';
+    if(!typing&&document.getElementById('app-screen').style.display==='block'){
+      if(e.key==='n'||e.key==='N'){ e.preventDefault(); document.getElementById('task-input').focus(); }
+      if(e.key==='g'||e.key==='G'){ e.preventDefault(); openModal(); }
+      if(e.key==='/'){ e.preventDefault(); document.getElementById('search-input').focus(); }
+    }
   });
   // Color picker
   const cp = document.getElementById('color-picker');
@@ -285,6 +305,17 @@ function switchTab(mode) {
 function setLoginError(msg)   { const e=document.getElementById('login-error');   e.textContent=msg; e.classList.add('show'); document.getElementById('login-success').classList.remove('show'); }
 function setLoginSuccess(msg) { const e=document.getElementById('login-success'); e.textContent=msg; e.classList.add('show'); document.getElementById('login-error').classList.remove('show'); }
 
+async function resetPassword() {
+  const email=document.getElementById('auth-email').value.trim();
+  if(!email){ setLoginError('Bitte zuerst E-Mail eingeben.'); return; }
+  try {
+    await sendPasswordResetEmail(auth, email);
+    setLoginSuccess('✓ Passwort-Reset-Link wurde gesendet. Bitte E-Mail prüfen.');
+  } catch(e) {
+    const m={'auth/user-not-found':'Kein Konto mit dieser E-Mail.','auth/invalid-email':'Ungültige E-Mail.'};
+    setLoginError(m[e.code]||e.message);
+  }
+}
 async function resendVerification() {
   if(!_pendingVerifUser){ setLoginError('Bitte registriere dich zuerst.'); return; }
   try { await sendEmailVerification(_pendingVerifUser); setLoginSuccess('✓ Link erneut gesendet.'); }
@@ -428,7 +459,13 @@ function render() {
   updateGroupSelect();
   const hideDone=document.getElementById('hide-done').checked;
   const overdueOnly=document.getElementById('show-overdue-only').checked;
-  let tasks=state.tasks.filter(t=>{ if(hideDone&&t.done)return false; if(overdueOnly&&deadlineStatus(t.deadline)!=='overdue')return false; return true; });
+  const searchQ=(document.getElementById('search-input')?.value||'').toLowerCase().trim();
+  let tasks=state.tasks.filter(t=>{
+    if(hideDone&&t.done)return false;
+    if(overdueOnly&&deadlineStatus(t.deadline)!=='overdue')return false;
+    if(searchQ&&!t.text.toLowerCase().includes(searchQ))return false;
+    return true;
+  });
   const allOpen=state.tasks.filter(t=>!t.done);
   const todayEnd=new Date(); todayEnd.setHours(23,59,59,999);
   document.getElementById('stat-total').textContent=state.tasks.length;
@@ -725,6 +762,7 @@ function uid() { return Math.random().toString(36).slice(2)+Date.now().toString(
 function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
 initApp();
+if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
 </script>
 </body>
 </html>

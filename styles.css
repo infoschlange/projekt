@@ -33,6 +33,8 @@ body { font-family: 'DM Mono', monospace; background: var(--paper); color: var(-
 .login-hint { font-size:0.68rem; color:var(--muted); text-align:center; margin-top:1rem; line-height:1.5; }
 .resend-link { font-size:0.68rem; color:var(--gold); cursor:pointer; text-decoration:underline; text-underline-offset:2px; margin-top:0.5rem; display:none; text-align:center; }
 .resend-link.show { display:block; }
+.forgot-link { font-size:0.68rem; color:var(--muted); cursor:pointer; text-decoration:underline; text-underline-offset:2px; margin-top:0.4rem; text-align:center; }
+.forgot-link:hover { color:var(--gold); }
 #app-screen { display:none; padding:2rem 1rem 4rem; }
 .container { max-width:800px; margin:0 auto; }
 header { margin-bottom:2.5rem; padding-bottom:1.2rem; border-bottom:2px solid var(--gold); display:flex; align-items:flex-end; justify-content:space-between; flex-wrap:wrap; gap:1rem; }
@@ -67,6 +69,11 @@ header h1 span { color:var(--gold); }
 .btn-ghost:hover { border-color:var(--gold); color:var(--gold); }
 .btn-danger { background:transparent; color:var(--rust); border:none; padding:0.3rem 0.4rem; font-size:0.7rem; opacity:0.6; cursor:pointer; }
 .btn-danger:hover { opacity:1; }
+.search-bar { display:flex; align-items:center; gap:1rem; margin-bottom:1rem; flex-wrap:wrap; }
+.search-bar input { font-family:'DM Mono',monospace; font-size:0.85rem; background:white; border:1px solid var(--border); border-radius:2px; padding:0.6rem 0.9rem; color:var(--ink); outline:none; flex:1; min-width:200px; transition:border-color 0.2s; box-shadow:2px 2px 0 var(--border); }
+.search-bar input:focus { border-color:var(--gold); }
+.kbd-hint { font-size:0.62rem; color:var(--muted); letter-spacing:0.05em; white-space:nowrap; }
+kbd { display:inline-block; font-family:'DM Mono',monospace; font-size:0.6rem; background:var(--cream); border:1px solid var(--border); border-radius:2px; padding:0.1rem 0.35rem; color:var(--ink); }
 .filter-bar { display:flex; align-items:center; gap:1rem; margin-bottom:1.5rem; flex-wrap:wrap; }
 .toggle-label { font-size:0.7rem; letter-spacing:0.08em; color:var(--muted); display:flex; align-items:center; gap:0.4rem; cursor:pointer; user-select:none; }
 .toggle-label input { cursor:pointer; accent-color:var(--gold); }
