@@ -69,12 +69,6 @@
     <div class="form-title">＋ Neue Aufgabe</div>
     <div class="form-row">
       <input type="text" id="task-input" placeholder="Aufgabe beschreiben …" />
-      <select id="recur-select">
-        <option value="">— Einmalig —</option>
-        <option value="daily">Täglich</option>
-        <option value="weekly">Wöchentlich</option>
-        <option value="monthly">Monatlich</option>
-      </select>
       <input type="datetime-local" id="deadline-input" />
     </div>
     <div class="form-row">
@@ -143,7 +137,6 @@
       <div class="edit-field"><div class="edit-field-label">Aufgabe</div><textarea id="edit-text" rows="2"></textarea></div>
       <div class="edit-field"><div class="edit-field-label">Fälligkeit</div><input type="datetime-local" id="edit-deadline" /></div>
       <div class="edit-field"><div class="edit-field-label">Gruppe</div><select id="edit-group"></select></div>
-      <div class="edit-field"><div class="edit-field-label">Wiederholung</div><select id="edit-recur"><option value="">— Einmalig —</option><option value="daily">Täglich</option><option value="weekly">Wöchentlich</option><option value="monthly">Monatlich</option></select></div>
     </div>
     <div class="edit-modal-footer">
       <button class="btn-confirm-cancel" id="btn-cancel-edit">Abbrechen</button>
@@ -372,26 +365,15 @@ function addTask() {
   const text=document.getElementById('task-input').value.trim();
   const deadline=document.getElementById('deadline-input').value;
   const groupId=document.getElementById('group-select').value;
-  const recurring=document.getElementById('recur-select').value;
   if(!text) return;
-  state.tasks.push({id:uid(),text,deadline,groupId,done:false,createdAt:new Date().toISOString(),emailNotifSent:false,recurring});
+  state.tasks.push({id:uid(),text,deadline,groupId,done:false,createdAt:new Date().toISOString(),emailNotifSent:false});
   saveToAPI(); render(); renderCalendar();
   checkDeadlineEmails();
   document.getElementById('task-input').value=''; document.getElementById('deadline-input').value='';
-  document.getElementById('recur-select').value='';
 }
 function toggleTask(id) {
   const t=state.tasks.find(t=>t.id===id); if(!t) return;
   t.done=!t.done;
-  if(t.done && t.recurring && t.deadline) {
-    const next=new Date(t.deadline);
-    if(t.recurring==='daily')        next.setDate(next.getDate()+1);
-    else if(t.recurring==='weekly')  next.setDate(next.getDate()+7);
-    else if(t.recurring==='monthly') next.setMonth(next.getMonth()+1);
-    const pad=n=>String(n).padStart(2,'0');
-    const nextStr=`${next.getFullYear()}-${pad(next.getMonth()+1)}-${pad(next.getDate())}T${pad(next.getHours())}:${pad(next.getMinutes())}`;
-    state.tasks.push({id:uid(),text:t.text,deadline:nextStr,groupId:t.groupId,done:false,createdAt:new Date().toISOString(),emailNotifSent:false,recurring:t.recurring});
-  }
   saveToAPI(); render(); renderCalendar();
 }
 function deleteTask(id) {
@@ -403,7 +385,6 @@ function openEditTask(id) {
   _editingTaskId=id;
   document.getElementById('edit-text').value=t.text;
   document.getElementById('edit-deadline').value=t.deadline||'';
-  document.getElementById('edit-recur').value=t.recurring||'';
   const sel=document.getElementById('edit-group');
   sel.innerHTML='<option value="">— Keine Gruppe —</option>'+state.groups.map(g=>`<option value="${g.id}"${g.id===t.groupId?' selected':''}>${esc(g.name)}</option>`).join('');
   document.getElementById('edit-modal-overlay').classList.add('open'); document.body.style.overflow='hidden';
@@ -416,7 +397,6 @@ function saveEditTask() {
   const newDeadline=document.getElementById('edit-deadline').value;
   if(newDeadline!==t.deadline){ t.deadline=newDeadline; t.emailNotifSent=false; }
   t.groupId=document.getElementById('edit-group').value;
-  t.recurring=document.getElementById('edit-recur').value;
   saveToAPI(); render(); renderCalendar();
   checkDeadlineEmails();
   closeEditTask();
@@ -520,9 +500,7 @@ function render() {
 }
 function taskHTML(t) {
   const s=deadlineStatus(t.deadline);
-  const recurLabel={'daily':'täglich','weekly':'wöchentlich','monthly':'monatlich'};
-  const recurBadge=t.recurring?`<span class="recur-badge">🔁 ${recurLabel[t.recurring]}</span>`:'';
-  return `<div class="task ${t.done?'done':''}"><div class="task-check ${t.done?'checked':''}" data-id="${t.id}"></div><div class="task-body"><div class="task-text">${esc(t.text)}</div><div class="task-meta">${t.deadline&&!t.done&&s?`<span class="deadline-badge ${s}">${formatDeadline(t.deadline,s)}</span>`:''} ${t.deadline&&t.done?`<span style="font-size:0.68rem;color:var(--muted)">War: ${formatDateTime(t.deadline)}</span>`:''} ${recurBadge} ${t.emailNotifSent?'<span class="notif-sent-badge">📧 gesendet</span>':''}</div></div><div class="task-actions"><button class="btn-edit" data-id="${t.id}" title="Bearbeiten">✎</button><button class="btn btn-danger" data-del="${t.id}" title="Löschen">✕</button></div></div>`;
+  return `<div class="task ${t.done?'done':''}"><div class="task-check ${t.done?'checked':''}" data-id="${t.id}"></div><div class="task-body"><div class="task-text">${esc(t.text)}</div><div class="task-meta">${t.deadline&&!t.done&&s?`<span class="deadline-badge ${s}">${formatDeadline(t.deadline,s)}</span>`:''} ${t.deadline&&t.done?`<span style="font-size:0.68rem;color:var(--muted)">War: ${formatDateTime(t.deadline)}</span>`:''} ${t.emailNotifSent?'<span class="notif-sent-badge">📧 gesendet</span>':''}</div></div><div class="task-actions"><button class="btn-edit" data-id="${t.id}" title="Bearbeiten">✎</button><button class="btn btn-danger" data-del="${t.id}" title="Löschen">✕</button></div></div>`;
 }
 
 // ── CALENDAR ──────────────────────────────────────────────────────────────────
