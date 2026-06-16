@@ -30,10 +30,12 @@ Das Projekt ermöglicht das Erstellen, Verwalten und Organisieren von Aufgaben m
 - Aufgaben erstellen mit Deadline (Datum + Uhrzeit)
 - Gruppen/Kategorien mit individueller Farbkodierung
 - Deadline-Statusanzeigen und Statistiken
-- Kalenderansicht (Monat, Jahr, Tag)
+- Kalenderansicht (Tag, Woche, Monat, Jahr)
 - E-Mail-Benachrichtigungen bei nahenden Fristen
 - Live-Suche zum schnellen Filtern von Aufgaben
 - Tastaturkürzel: `N` Neue Aufgabe · `G` Gruppen · `/` Suche · `Esc` Schließen
+- Fortschrittsbalken pro Gruppe (erledigte Prozent)
+- Dunkelmodus mit automatischer Speicherung
 - PWA-fähig: Als App installierbar, funktioniert offline
 - Passwort-Zurücksetzen per E-Mail
 
