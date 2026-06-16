@@ -69,16 +69,16 @@
     <div class="form-title">＋ Neue Aufgabe</div>
     <div class="form-row">
       <input type="text" id="task-input" placeholder="Aufgabe beschreiben …" />
-      <input type="datetime-local" id="deadline-input" />
-    </div>
-    <div class="form-row">
-      <select id="group-select"><option value="">— Keine Gruppe —</option></select>
       <select id="recur-select">
         <option value="">— Einmalig —</option>
         <option value="daily">Täglich</option>
         <option value="weekly">Wöchentlich</option>
         <option value="monthly">Monatlich</option>
       </select>
+      <input type="datetime-local" id="deadline-input" />
+    </div>
+    <div class="form-row">
+      <select id="group-select"><option value="">— Keine Gruppe —</option></select>
       <button class="btn btn-primary" id="btn-add-task">Hinzufügen</button>
     </div>
     <details style="margin-top:0.5rem;">
