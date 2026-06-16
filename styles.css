@@ -3,8 +3,29 @@
   --gold: #c8a84b; --gold-light: #e8d08a;
   --rust: #b85c38; --sage: #6b8f71; --muted: #8a8578; --border: #d4cebe;
 }
+body.dark {
+  --ink: #e8e3d8; --paper: #1a1a18; --cream: #222220;
+  --gold: #c8a84b; --gold-light: #e8d08a;
+  --rust: #d4724e; --sage: #7aaa82; --muted: #7a7670; --border: #2e2e2a;
+}
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: 'DM Mono', monospace; background: var(--paper); color: var(--ink); min-height: 100vh; background-image: repeating-linear-gradient(0deg, transparent, transparent 27px, rgba(200,168,75,0.08) 27px, rgba(200,168,75,0.08) 28px); }
+body { font-family: 'DM Mono', monospace; background: var(--paper); color: var(--ink); min-height: 100vh; background-image: repeating-linear-gradient(0deg, transparent, transparent 27px, rgba(200,168,75,0.08) 27px, rgba(200,168,75,0.08) 28px); transition: background 0.3s, color 0.3s; }
+.btn-darkmode { font-family:'DM Mono',monospace; font-size:0.75rem; background:transparent; color:var(--muted); border:1px solid var(--border); border-radius:2px; padding:0.25rem 0.6rem; cursor:pointer; transition:all 0.15s; }
+.btn-darkmode:hover { border-color:var(--gold); color:var(--gold); }
+body.dark .login-card { background: var(--cream); }
+body.dark .login-top { background: #111110; }
+body.dark .add-form { background: var(--cream); }
+body.dark .group { background: var(--cream); }
+body.dark .task:hover { background: #2a2a26; }
+body.dark .task-check { background: var(--cream); }
+body.dark .calendar-wrap { background: var(--cream); }
+body.dark .cal-mini-month { background: var(--cream); }
+body.dark .modal { background: var(--cream); }
+body.dark .edit-modal { background: var(--cream); }
+body.dark .confirm-box { background: var(--cream); }
+body.dark .edit-field input, body.dark .edit-field select, body.dark .edit-field textarea { background: var(--paper); }
+body.dark .form-row input, body.dark .form-row select { background: var(--cream); }
+body.dark .login-tab.active { background: var(--cream); }
 #loading-screen { min-height:100vh; display:flex; align-items:center; justify-content:center; flex-direction:column; gap:1rem; }
 .loading-spinner { width:32px; height:32px; border:3px solid var(--border); border-top-color:var(--gold); border-radius:50%; animation:spin 0.8s linear infinite; }
 @keyframes spin { to { transform:rotate(360deg); } }

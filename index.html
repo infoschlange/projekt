@@ -52,6 +52,7 @@
       <div class="header-meta" id="today-display"></div>
       <div class="user-bar">
         <div class="user-badge">👤 <strong id="user-display"></strong></div>
+        <button class="btn-darkmode" id="btn-darkmode">🌙</button>
         <button class="btn-logout" id="btn-logout">Abmelden</button>
       </div>
     </div>
@@ -212,6 +213,8 @@ function initApp() {
   document.getElementById('forgot-link').addEventListener('click', resetPassword);
   // App buttons
   document.getElementById('btn-logout').addEventListener('click', logout);
+  document.getElementById('btn-darkmode').addEventListener('click', toggleDarkMode);
+  if(localStorage.getItem('darkmode')==='1') applyDarkMode(true);
   document.getElementById('btn-add-task').addEventListener('click', addTask);
   document.getElementById('btn-create-group').addEventListener('click', createGroup);
   document.getElementById('btn-open-modal').addEventListener('click', openModal);
@@ -737,6 +740,18 @@ function showConfirm(title,msg,onOk) {
   document.getElementById('co').addEventListener('click',()=>{o.remove();onOk();});
   o.addEventListener('click',e=>{if(e.target===o)o.remove();});
   setTimeout(()=>document.getElementById('cc')?.focus(),50);
+}
+
+// ── DARK MODE ─────────────────────────────────────────────────────────────────
+function applyDarkMode(on) {
+  document.body.classList.toggle('dark', on);
+  const btn=document.getElementById('btn-darkmode');
+  if(btn) btn.textContent=on?'☀️':'🌙';
+}
+function toggleDarkMode() {
+  const on=!document.body.classList.contains('dark');
+  applyDarkMode(on);
+  localStorage.setItem('darkmode', on?'1':'0');
 }
 
 // ── HELPERS ───────────────────────────────────────────────────────────────────
