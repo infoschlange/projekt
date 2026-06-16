@@ -1,4 +1,4 @@
-const CACHE = 'aufgaben-v1';
+const CACHE = 'aufgaben-v2';
 const ASSETS = ['/', '/index.html', '/styles.css', '/manifest.json'];
 
 self.addEventListener('install', e => {
