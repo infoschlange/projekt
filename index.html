@@ -111,9 +111,10 @@
         <div class="cal-title" id="cal-title"></div>
         <button class="cal-nav" id="cal-next">›</button>
         <div class="cal-view-btns">
+          <button class="cal-view-btn" data-view="day">Tag</button>
+          <button class="cal-view-btn" data-view="week">Woche</button>
           <button class="cal-view-btn active" data-view="month">Monat</button>
           <button class="cal-view-btn" data-view="year">Jahr</button>
-          <button class="cal-view-btn" data-view="day">Tag</button>
         </div>
       </div>
       <div id="cal-body"></div>
@@ -508,12 +509,14 @@ function calPrev() {
   if(calView==='month'){ calMonth--; if(calMonth<0){calMonth=11;calYear--;} }
   else if(calView==='year'){ calYear--; }
   else if(calView==='day'){ const d=new Date(calYear,calMonth,calDay-1); calYear=d.getFullYear(); calMonth=d.getMonth(); calDay=d.getDate(); }
+  else if(calView==='week'){ const d=new Date(calYear,calMonth,calDay-7); calYear=d.getFullYear(); calMonth=d.getMonth(); calDay=d.getDate(); }
   renderCalendar();
 }
 function calNext() {
   if(calView==='month'){ calMonth++; if(calMonth>11){calMonth=0;calYear++;} }
   else if(calView==='year'){ calYear++; }
   else if(calView==='day'){ const d=new Date(calYear,calMonth,calDay+1); calYear=d.getFullYear(); calMonth=d.getMonth(); calDay=d.getDate(); }
+  else if(calView==='week'){ const d=new Date(calYear,calMonth,calDay+7); calYear=d.getFullYear(); calMonth=d.getMonth(); calDay=d.getDate(); }
   renderCalendar();
 }
 
@@ -523,6 +526,7 @@ function renderCalendar() {
   if(calView==='month')      renderCalMonth(body);
   else if(calView==='year')  renderCalYear(body);
   else if(calView==='day')   renderCalDay(body);
+  else if(calView==='week')  renderCalWeek(body);
 }
 
 // ── MONTH VIEW ────────────────────────────────────────────────────────────────
@@ -687,6 +691,59 @@ function renderCalDay(body) {
   // Scroll to 7:00 or first task
   const scrollTo=dayTasks.length?Math.max(0,(new Date(sorted[0].deadline).getHours()*60-60)*PX_PER_MIN):7*60*PX_PER_MIN;
   requestAnimationFrame(()=>{ body.querySelector('.cal-timeline').scrollTop=scrollTo; });
+}
+
+// ── WEEK VIEW ─────────────────────────────────────────────────────────────────
+function renderCalWeek(body) {
+  const base=new Date(calYear,calMonth,calDay);
+  const dow=(base.getDay()+6)%7; // Mo=0
+  const monday=new Date(base); monday.setDate(base.getDate()-dow);
+  const days=Array.from({length:7},(_,i)=>{ const d=new Date(monday); d.setDate(monday.getDate()+i); return d; });
+  const sunday=days[6];
+  document.getElementById('cal-title').textContent=
+    `${days[0].getDate()}. ${MONTH_NAMES[days[0].getMonth()]} – ${sunday.getDate()}. ${MONTH_NAMES[sunday.getMonth()]} ${sunday.getFullYear()}`;
+
+  const PX_PER_MIN=2, TOTAL=24*60*PX_PER_MIN;
+  const DOW=['Mo','Di','Mi','Do','Fr','Sa','So'];
+  const today=new Date();
+
+  let headHTML='<div class="cal-week-head"><div class="cal-week-time-col"></div>';
+  days.forEach((d,i)=>{
+    const isToday=d.toDateString()===today.toDateString();
+    headHTML+=`<div class="cal-week-day-hdr${isToday?' today':''}"><div>${DOW[i]}</div><div class="cal-week-day-num${isToday?' today':''}">${d.getDate()}</div></div>`;
+  });
+  headHTML+='</div>';
+
+  let gridHTML=`<div class="cal-week-grid"><div class="cal-week-time-col" id="week-time-col">`;
+  for(let h=0;h<24;h++) gridHTML+=`<div class="cal-time-slot">${String(h).padStart(2,'0')}:00</div><div class="cal-time-slot" style="border-bottom:1px dashed var(--border);opacity:0.5"></div>`;
+  gridHTML+='</div>';
+
+  days.forEach(d=>{
+    const isToday=d.toDateString()===today.toDateString();
+    const dayTasks=state.tasks.filter(t=>!t.done&&t.deadline&&new Date(t.deadline).toDateString()===d.toDateString());
+    gridHTML+=`<div class="cal-week-col" style="position:relative;min-height:${TOTAL}px;">`;
+    for(let h=0;h<24;h++){
+      gridHTML+=`<div class="cal-hour-line" style="position:absolute;left:0;right:0;top:${h*60*PX_PER_MIN}px"></div>`;
+      gridHTML+=`<div class="cal-hour-line half" style="position:absolute;left:0;right:0;top:${(h*60+30)*PX_PER_MIN}px"></div>`;
+    }
+    if(isToday){
+      const nm=today.getHours()*60+today.getMinutes();
+      gridHTML+=`<div class="cal-now-line" style="top:${nm*PX_PER_MIN}px"><div class="cal-now-dot"></div></div>`;
+    }
+    dayTasks.forEach(t=>{
+      const dt=new Date(t.deadline);
+      const top=Math.max(0,(dt.getHours()*60+dt.getMinutes())*PX_PER_MIN-22);
+      const g=state.groups.find(g=>g.id===t.groupId); const c=g?g.color:'#8a8578';
+      gridHTML+=`<div class="cal-event" style="top:${top}px;height:40px;color:${c};background:${c}18;border-left-color:${c};left:2px;right:2px;" data-tid="${t.id}"><div class="cal-event-title">${esc(t.text)}</div><div class="cal-event-time">⏰ ${formatTime(t.deadline)}</div></div>`;
+    });
+    gridHTML+='</div>';
+  });
+  gridHTML+='</div>';
+
+  body.innerHTML=headHTML+`<div class="cal-week-wrap">${gridHTML}</div>`;
+  body.querySelectorAll('.cal-event[data-tid]').forEach(el=>el.addEventListener('click',()=>openEditTask(el.dataset.tid)));
+  const nowMins=today.getHours()*60+today.getMinutes();
+  requestAnimationFrame(()=>{ const w=body.querySelector('.cal-week-wrap'); if(w) w.scrollTop=Math.max(0,(nowMins-60)*PX_PER_MIN); });
 }
 
 function showCalTooltip(taskIds,e) {

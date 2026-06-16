@@ -220,6 +220,16 @@ kbd { display:inline-block; font-family:'DM Mono',monospace; font-size:0.6rem; b
 .cal-event-time { opacity:0.7; font-size:0.58rem; }
 .cal-now-line { position:absolute; left:0; right:0; height:2px; background:var(--rust); z-index:10; pointer-events:none; }
 .cal-now-dot { position:absolute; left:-4px; top:-4px; width:10px; height:10px; border-radius:50%; background:var(--rust); }
+/* WEEK VIEW */
+.cal-week-head { display:flex; border-bottom:1px solid var(--border); background:var(--cream); }
+.cal-week-time-col { width:52px; flex-shrink:0; }
+.cal-week-day-hdr { flex:1; text-align:center; padding:0.4rem 0.2rem; font-size:0.6rem; letter-spacing:0.08em; text-transform:uppercase; color:var(--muted); border-left:1px solid var(--border); }
+.cal-week-day-hdr.today { background:rgba(200,168,75,0.1); }
+.cal-week-day-num { font-family:'Playfair Display',serif; font-size:1rem; font-weight:700; color:var(--ink); line-height:1.2; }
+.cal-week-day-num.today { color:var(--gold); }
+.cal-week-wrap { overflow-y:auto; max-height:520px; }
+.cal-week-grid { display:flex; }
+.cal-week-col { flex:1; border-left:1px solid var(--border); position:relative; }
 /* TOOLTIP */
 .cal-tooltip { position:fixed; background:var(--ink); color:var(--paper); font-size:0.72rem; padding:0.6rem 0.9rem; border-radius:3px; box-shadow:4px 4px 0 rgba(0,0,0,0.25); z-index:800; pointer-events:none; max-width:220px; line-height:1.6; display:none; border-left:3px solid var(--gold); }
 .cal-tooltip.show { display:block; }
