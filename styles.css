@@ -27,7 +27,9 @@ body.dark .group-header { background: var(--paper); }
 body.dark .group-count { background: var(--cream); }
 body.dark .task { background: var(--cream); }
 body.dark .task:hover { background: #2a2a26; }
-body.dark .task-check { background: var(--paper); }
+body.dark .task.done { opacity: 0.75; }
+body.dark .task.done .task-text { color: var(--muted); }
+body.dark .task-check { background: var(--paper); border-color: var(--border); }
 body.dark .ungrouped { background: var(--cream); }
 body.dark .ungrouped-header { background: var(--paper); }
 body.dark .calendar-wrap { background: var(--cream); }
