@@ -51,9 +51,17 @@ Das Projekt ermöglicht das Erstellen, Verwalten und Organisieren von Aufgaben m
 
 ## Lokale Entwicklung
 
-Da es sich um eine reine HTML/CSS/JS-Anwendung handelt, ist kein Build-Schritt notwendig. Einfach `index.html` im Browser öffnen oder einen lokalen Entwicklungsserver verwenden (z. B. VS Code Live Server).
+Kein Build-Schritt notwendig — das Repository enthält nur 5 Dateien:
 
-> **Hinweis:** `index.html` und `styles.css` müssen sich im selben Verzeichnis befinden, damit die Styles korrekt geladen werden.
+| Datei | Beschreibung |
+|---|---|
+| `index.html` | Vollständige Webanwendung (HTML + JavaScript) |
+| `styles.css` | Alle CSS-Stile der Anwendung |
+| `manifest.json` | PWA-Manifest für App-Installation |
+| `sw.js` | Service Worker |
+| `README.md` | Projektdokumentation |
+
+Einfach `index.html` im Browser öffnen oder einen lokalen Server verwenden (z. B. VS Code Live Server).
 
 ## Autor
 
