@@ -14,8 +14,6 @@ Das Projekt ermöglicht das Erstellen, Verwalten und Organisieren von Aufgaben m
 |---|---|
 | `index.html` | Vollständige Webanwendung (HTML + JavaScript) |
 | `styles.css` | Alle CSS-Stile der Anwendung (ausgelagert aus `index.html`) |
-| `manifest.json` | PWA-Manifest für App-Installation |
-| `sw.js` | Service Worker für Offline-Unterstützung |
 | `README.md` | Projektdokumentation |
 
 ## Verwendete Technologien
