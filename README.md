@@ -36,7 +36,6 @@ Das Projekt ermöglicht das Erstellen, Verwalten und Organisieren von Aufgaben m
 - Tastaturkürzel: `N` Neue Aufgabe · `G` Gruppen · `/` Suche · `Esc` Schließen
 - Fortschrittsbalken pro Gruppe (erledigte Prozent)
 - Dunkelmodus mit automatischer Speicherung
-- PWA-fähig: Als App installierbar, funktioniert offline
 - Passwort-Zurücksetzen per E-Mail
 
 ## Voraussetzungen
@@ -57,8 +56,6 @@ Kein Build-Schritt notwendig — das Repository enthält nur 5 Dateien:
 |---|---|
 | `index.html` | Vollständige Webanwendung (HTML + JavaScript) |
 | `styles.css` | Alle CSS-Stile der Anwendung |
-| `manifest.json` | PWA-Manifest für App-Installation |
-| `sw.js` | Service Worker |
 | `README.md` | Projektdokumentation |
 
 Einfach `index.html` im Browser öffnen oder einen lokalen Server verwenden (z. B. VS Code Live Server).
